@@ -2,12 +2,12 @@
 @section('title', 'サイト作成')
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.index') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; サイト一覧に戻る</a>
+    <a href="{{ route('clinic.sites.index', $clinic) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; サイト一覧に戻る</a>
 </div>
 <h1 class="text-2xl font-bold mb-6">新規サイト作成</h1>
 
 <div class="bg-white rounded-lg shadow p-6 max-w-2xl">
-    <form method="POST" action="{{ route('sites.store') }}">
+    <form method="POST" action="{{ route('clinic.sites.store', $clinic) }}">
         @csrf
 
         <div class="space-y-5">
@@ -77,7 +77,7 @@
 
         <div class="mt-6 flex space-x-3">
             <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md text-sm hover:bg-indigo-700">作成</button>
-            <a href="{{ route('sites.index') }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
+            <a href="{{ route('clinic.sites.index', $clinic) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
         </div>
     </form>
 </div>

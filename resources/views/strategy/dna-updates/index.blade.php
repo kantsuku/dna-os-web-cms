@@ -10,7 +10,7 @@
 @if($sites->isNotEmpty())
 <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
     <h2 class="text-sm font-medium text-gray-700 mb-3">手動同期</h2>
-    <form method="POST" action="{{ route('strategy.dna-updates.sync') }}" class="flex items-center space-x-3">
+    <form method="POST" action="{{ route('clinic.strategy.dna-updates.sync', $clinic) }}" class="flex items-center space-x-3">
         @csrf
         <select name="site_id" required class="border-gray-300 rounded text-sm">
             <option value="">サイトを選択</option>

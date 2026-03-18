@@ -2,12 +2,12 @@
 @section('title', $site->name . ' - ページ作成')
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.show', $site) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
+    <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
 </div>
 <h1 class="text-2xl font-bold mb-6">ページ作成</h1>
 
 <div class="bg-white rounded-lg shadow p-6 max-w-2xl">
-    <form method="POST" action="{{ route('sites.pages.store', $site) }}">
+    <form method="POST" action="{{ route('clinic.sites.pages.store', [$clinic, $site]) }}">
         @csrf
 
         <div class="space-y-5">
@@ -54,7 +54,7 @@
 
         <div class="mt-6 flex space-x-3">
             <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md text-sm hover:bg-indigo-700">作成</button>
-            <a href="{{ route('sites.show', $site) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
+            <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
         </div>
     </form>
 </div>

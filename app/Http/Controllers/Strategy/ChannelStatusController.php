@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Strategy;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChannelTask;
+use App\Models\Clinic;
 use Illuminate\Http\Request;
 
 class ChannelStatusController extends Controller
 {
-    public function index(Request $request)
+    public function index(Clinic $clinic, Request $request)
     {
         $query = ChannelTask::with(['strategicTask', 'targetSite', 'targetPage'])
             ->orderByDesc('created_at');

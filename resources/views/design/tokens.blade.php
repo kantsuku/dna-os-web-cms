@@ -3,7 +3,7 @@
 @section('content')
 <h1 class="text-2xl font-bold mb-6">デザイントークン管理</h1>
 
-<form method="POST" action="{{ route('design.tokens.update') }}">
+<form method="POST" action="{{ route('clinic.design.tokens.update', $clinic) }}">
     @csrf
     @method('PUT')
 

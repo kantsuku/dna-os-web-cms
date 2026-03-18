@@ -2,7 +2,7 @@
 @section('title', '公開管理 - ' . $site->name)
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.show', $site) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
+    <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
 </div>
 
 <h1 class="text-2xl font-bold mb-6">公開管理 - {{ $site->name }}</h1>
@@ -14,7 +14,7 @@
     </div>
 
     @if($readyPages->isNotEmpty())
-    <form method="POST" action="{{ route('sites.publish.deploy', $site) }}">
+    <form method="POST" action="{{ route('clinic.sites.publish.deploy', [$clinic, $site]) }}">
         @csrf
         <table class="w-full">
             <thead class="bg-gray-50">
@@ -101,7 +101,7 @@
                 </td>
                 <td class="px-6 py-4 text-right">
                     @if($record->deploy_status === 'success' && !$record->rollback_of)
-                    <form method="POST" action="{{ route('sites.publish.rollback', [$site, $record]) }}" class="inline">
+                    <form method="POST" action="{{ route('clinic.sites.publish.rollback', [$clinic, $site, $record]) }}" class="inline">
                         @csrf
                         <button type="submit" class="text-red-600 hover:underline text-sm"
                             onclick="return confirm('このデプロイにロールバックしますか？')">

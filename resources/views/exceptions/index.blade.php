@@ -3,12 +3,12 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.show', $site) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; {{ $site->name }}</a>
+    <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; {{ $site->name }}</a>
 </div>
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-900">例外コンテンツ</h1>
-    <a href="{{ route('sites.exceptions.create', $site) }}" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">新規作成</a>
+    <a href="{{ route('clinic.sites.exceptions.create', [$clinic, $site]) }}" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">新規作成</a>
 </div>
 
 <div class="space-y-3">
@@ -23,7 +23,7 @@
                         <span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">{{ $typeLabels[$exc->content_type] ?? $exc->content_type }}</span>
                         <span class="text-xs text-gray-400">{{ $exc->page->title }}</span>
                     </div>
-                    <a href="{{ route('sites.exceptions.show', [$site, $exc]) }}" class="font-medium text-gray-900 hover:text-indigo-600">{{ $exc->title }}</a>
+                    <a href="{{ route('clinic.sites.exceptions.show', [$clinic, $site, $exc]) }}" class="font-medium text-gray-900 hover:text-indigo-600">{{ $exc->title }}</a>
                 </div>
                 @php
                     $sColors = [

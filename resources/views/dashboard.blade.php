@@ -16,11 +16,11 @@
         <div class="text-xs text-gray-500">未公開世代</div>
         <div class="text-2xl font-bold text-yellow-600 mt-1">{{ $newGenerations }}</div>
     </div>
-    <a href="{{ route('approvals.index') }}" class="bg-white rounded-lg shadow p-5 hover:ring-2 hover:ring-indigo-300 transition">
+    <a href="{{ route('clinic.approvals.index', $clinic) }}" class="bg-white rounded-lg shadow p-5 hover:ring-2 hover:ring-indigo-300 transition">
         <div class="text-xs text-gray-500">承認待ち</div>
         <div class="text-2xl font-bold text-red-600 mt-1">{{ $totalPendingApprovals }}</div>
     </a>
-    <a href="{{ route('strategy.tasks.index', ['status' => 'in_progress']) }}" class="bg-white rounded-lg shadow p-5 hover:ring-2 hover:ring-indigo-300 transition">
+    <a href="{{ route('clinic.strategy.tasks.index', ['clinic' => $clinic->id, 'status' => 'in_progress']) }}" class="bg-white rounded-lg shadow p-5 hover:ring-2 hover:ring-indigo-300 transition">
         <div class="text-xs text-gray-500">進行中タスク</div>
         <div class="text-2xl font-bold text-blue-600 mt-1">{{ $activeStrategicTasks }}</div>
     </a>
@@ -29,7 +29,7 @@
 <div class="bg-white rounded-lg shadow">
     <div class="px-6 py-4 border-b flex justify-between items-center">
         <h2 class="text-lg font-semibold">サイト一覧</h2>
-        <a href="{{ route('sites.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">新規サイト</a>
+        <a href="{{ route('clinic.sites.create', $clinic) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">新規サイト</a>
     </div>
     <table class="w-full">
         <thead class="bg-gray-50">
@@ -48,7 +48,7 @@
                 <td class="px-6 py-4 text-sm text-gray-500">{{ $site->domain ?? '-' }}</td>
                 <td class="px-6 py-4 text-sm">{{ $site->pages_count }}</td>
                 <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-full {{ $site->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">{{ $site->status }}</span></td>
-                <td class="px-6 py-4 text-right"><a href="{{ route('sites.show', $site) }}" class="text-indigo-600 hover:underline text-sm">管理</a></td>
+                <td class="px-6 py-4 text-right"><a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-indigo-600 hover:underline text-sm">管理</a></td>
             </tr>
             @empty
             <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">まだサイトがありません</td></tr>

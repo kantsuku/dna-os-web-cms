@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Clinic;
 use App\Models\Site;
 use App\Models\SiteDesign;
 use App\Services\FtpDeployService;
@@ -9,22 +10,23 @@ use Illuminate\Http\Request;
 
 class SiteController extends Controller
 {
-    public function index()
+    public function index(Clinic $clinic)
     {
-        $sites = Site::withCount('pages')->orderBy('name')->get();
-        return view('sites.index', compact('sites'));
+        $sites = $clinic->sites()->withCount('pages')->orderBy('name')->get();
+        return view('sites.index', compact('clinic', 'sites'));
     }
 
-    public function create()
+    public function create(Clinic $clinic)
     {
-        return view('sites.create');
+        return view('sites.create', compact('clinic'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Clinic $clinic)
     {
         $validated = $request->validate([
-            'clinic_id' => ['required', 'string', 'max:50'],
             'name' => ['required', 'string', 'max:255'],
+            'site_type' => ['required', 'in:hp,specialty,recruitment,lp,other'],
+            'site_label' => ['nullable', 'string', 'max:255'],
             'domain' => ['nullable', 'string', 'max:255'],
             'xserver_host' => ['nullable', 'string', 'max:255'],
             'xserver_ftp_user' => ['nullable', 'string', 'max:255'],
@@ -33,9 +35,11 @@ class SiteController extends Controller
             'gas_generator_url' => ['nullable', 'string', 'max:500'],
         ]);
 
+        $validated['clinic_id'] = $clinic->clinic_id;
+        $validated['clinic_ref_id'] = $clinic->id;
+
         $site = Site::create($validated);
 
-        // デフォルトデザインを作成
         $design = SiteDesign::create([
             'site_id' => $site->id,
             'name' => 'default',
@@ -43,25 +47,29 @@ class SiteController extends Controller
         ]);
         $site->update(['design_id' => $design->id]);
 
-        return redirect()->route('sites.show', $site)->with('success', 'サイトを作成しました');
+        return redirect()->route('clinic.sites.show', [$clinic, $site])->with('success', 'サイトを作成しました');
     }
 
-    public function show(Site $site)
+    public function show(Clinic $clinic, Site $site)
     {
-        $site->load(['pages' => fn ($q) => $q->with('currentGeneration')->orderBy('sort_order'), 'deployRecords' => fn ($q) => $q->latest()->limit(5)]);
-        return view('sites.show', compact('site'));
+        $site->load([
+            'pages' => fn ($q) => $q->with('currentGeneration')->orderBy('sort_order'),
+            'deployRecords' => fn ($q) => $q->latest()->limit(5),
+        ]);
+        return view('sites.show', compact('clinic', 'site'));
     }
 
-    public function edit(Site $site)
+    public function edit(Clinic $clinic, Site $site)
     {
-        return view('sites.edit', compact('site'));
+        return view('sites.edit', compact('clinic', 'site'));
     }
 
-    public function update(Request $request, Site $site)
+    public function update(Request $request, Clinic $clinic, Site $site)
     {
         $validated = $request->validate([
-            'clinic_id' => ['required', 'string', 'max:50'],
             'name' => ['required', 'string', 'max:255'],
+            'site_type' => ['required', 'in:hp,specialty,recruitment,lp,other'],
+            'site_label' => ['nullable', 'string', 'max:255'],
             'domain' => ['nullable', 'string', 'max:255'],
             'xserver_host' => ['nullable', 'string', 'max:255'],
             'xserver_ftp_user' => ['nullable', 'string', 'max:255'],
@@ -72,12 +80,12 @@ class SiteController extends Controller
         ]);
 
         $site->update($validated);
-        return redirect()->route('sites.show', $site)->with('success', 'サイトを更新しました');
+        return redirect()->route('clinic.sites.show', [$clinic, $site])->with('success', 'サイトを更新しました');
     }
 
-    public function testFtp(Site $site, FtpDeployService $ftpService)
+    public function testFtp(Clinic $clinic, Site $site, FtpDeployService $ftpService)
     {
         $ok = $ftpService->testConnection($site);
-        return redirect()->route('sites.show', $site)->with($ok ? 'success' : 'error', $ok ? 'FTP接続成功' : 'FTP接続失敗');
+        return redirect()->route('clinic.sites.show', [$clinic, $site])->with($ok ? 'success' : 'error', $ok ? 'FTP接続成功' : 'FTP接続失敗');
     }
 }

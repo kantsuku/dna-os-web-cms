@@ -2,12 +2,12 @@
 @section('title', $site->name . ' - ページ一覧')
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.show', $site) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
+    <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
 </div>
 
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">{{ $site->name }} - ページ一覧</h1>
-    <a href="{{ route('sites.pages.create', $site) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">ページ追加</a>
+    <a href="{{ route('clinic.sites.pages.create', [$clinic, $site]) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">ページ追加</a>
 </div>
 
 <div class="bg-white rounded-lg shadow">
@@ -47,8 +47,8 @@
                     </span>
                 </td>
                 <td class="px-6 py-4 text-right space-x-2">
-                    <a href="{{ route('sites.pages.show', [$site, $page]) }}" class="text-indigo-600 hover:underline text-sm">詳細</a>
-                    <a href="{{ route('sites.pages.edit', [$site, $page]) }}" class="text-gray-600 hover:underline text-sm">編集</a>
+                    <a href="{{ route('clinic.sites.pages.show', [$clinic, $site, $page]) }}" class="text-indigo-600 hover:underline text-sm">詳細</a>
+                    <a href="{{ route('clinic.sites.pages.edit', [$clinic, $site, $page]) }}" class="text-gray-600 hover:underline text-sm">編集</a>
                 </td>
             </tr>
             @empty

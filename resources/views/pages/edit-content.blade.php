@@ -2,13 +2,13 @@
 @section('title', '微細編集 - ' . $page->title)
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.pages.show', [$site, $page]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $page->title }}に戻る</a>
+    <a href="{{ route('clinic.sites.pages.show', [$clinic, $site, $page]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $page->title }}に戻る</a>
 </div>
 
 <h1 class="text-2xl font-bold mb-2">微細編集</h1>
 <p class="text-sm text-gray-500 mb-6">{{ $site->name }} / {{ $page->title }} / 世代 #{{ $generation->generation }}</p>
 
-<form method="POST" action="{{ route('sites.pages.update-content', [$site, $page]) }}">
+<form method="POST" action="{{ route('clinic.sites.pages.update-content', [$clinic, $site, $page]) }}">
     @csrf
     @method('PUT')
 
@@ -50,7 +50,7 @@
 
     <div class="flex space-x-3">
         <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md text-sm hover:bg-indigo-700">保存</button>
-        <a href="{{ route('sites.pages.show', [$site, $page]) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
+        <a href="{{ route('clinic.sites.pages.show', [$clinic, $site, $page]) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
     </div>
 </form>
 @endsection

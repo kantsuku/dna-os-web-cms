@@ -2,12 +2,12 @@
 @section('title', 'デザイン設定 - ' . $site->name)
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.show', $site) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
+    <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
 </div>
 
 <h1 class="text-2xl font-bold mb-6">デザイン設定 - {{ $site->name }}</h1>
 
-<form method="POST" action="{{ route('design.site.update', $site) }}">
+<form method="POST" action="{{ route('clinic.design.site.update', [$clinic, $site]) }}">
     @csrf
     @method('PUT')
 
@@ -62,7 +62,7 @@
 
     <div class="flex space-x-3">
         <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md text-sm hover:bg-indigo-700">保存</button>
-        <a href="{{ route('sites.show', $site) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
+        <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
     </div>
 </form>
 @endsection

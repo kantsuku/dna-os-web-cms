@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Shared;
 use App\Http\Controllers\Controller;
 use App\Models\ApprovalRecord;
 use App\Models\ChannelTask;
+use App\Models\Clinic;
 use App\Models\ExceptionContent;
 use App\Models\StrategicTask;
 use Illuminate\Http\Request;
 
 class ApprovalController extends Controller
 {
-    public function index()
+    public function index(Clinic $clinic)
     {
         // 承認待ちを全種別横断で取得
         $strategicTasks = StrategicTask::where('status', 'pending_approval')
@@ -61,7 +62,7 @@ class ApprovalController extends Controller
         return view('shared.approvals.index', compact('pendingItems'));
     }
 
-    public function history(Request $request)
+    public function history(Clinic $clinic, Request $request)
     {
         $records = ApprovalRecord::with('approver')
             ->orderByDesc('created_at')

@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.pages.sections', [$site, $page]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; セクション一覧に戻る</a>
+    <a href="{{ route('clinic.sites.pages.sections', [$clinic, $site, $page]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; セクション一覧に戻る</a>
 </div>
 
 <h1 class="text-2xl font-bold text-gray-900 mb-2">セクション編集</h1>
@@ -14,7 +14,7 @@
     @endif
 </p>
 
-<form method="POST" action="{{ route('sites.pages.sections.update', [$site, $page, $sectionId]) }}" x-data="{ html: @js($section['content_html'] ?? '') }">
+<form method="POST" action="{{ route('clinic.sites.pages.sections.update', [$clinic, $site, $page, $sectionId]) }}" x-data="{ html: @js($section['content_html'] ?? '') }">
     @csrf
     @method('PUT')
 
@@ -52,7 +52,7 @@
 
         <div class="flex space-x-3">
             <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded text-sm hover:bg-indigo-700">保存する</button>
-            <a href="{{ route('sites.pages.sections', [$site, $page]) }}" class="bg-gray-100 text-gray-700 px-6 py-2 rounded text-sm hover:bg-gray-200">キャンセル</a>
+            <a href="{{ route('clinic.sites.pages.sections', [$clinic, $site, $page]) }}" class="bg-gray-100 text-gray-700 px-6 py-2 rounded text-sm hover:bg-gray-200">キャンセル</a>
         </div>
     </div>
 </form>

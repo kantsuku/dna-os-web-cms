@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('strategy.tasks.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; タスク一覧に戻る</a>
+    <a href="{{ route('clinic.strategy.tasks.index', $clinic) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; タスク一覧に戻る</a>
 </div>
 
 <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
@@ -50,11 +50,11 @@
     {{-- アクションボタン --}}
     @if($strategicTask->canBeApproved())
         <div class="flex space-x-3 mt-6 pt-4 border-t">
-            <form method="POST" action="{{ route('strategy.tasks.approve', $strategicTask) }}">
+            <form method="POST" action="{{ route('clinic.strategy.tasks.approve', [$clinic, $strategicTask]) }}">
                 @csrf
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">承認する</button>
             </form>
-            <form method="POST" action="{{ route('strategy.tasks.reject', $strategicTask) }}" x-data="{ show: false }">
+            <form method="POST" action="{{ route('clinic.strategy.tasks.reject', [$clinic, $strategicTask]) }}" x-data="{ show: false }">
                 @csrf
                 <button type="button" @click="show = !show" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">却下する</button>
                 <div x-show="show" class="mt-2">
@@ -77,7 +77,7 @@
                     <p class="font-medium text-gray-900">{{ $ct->title }}</p>
                     <p class="text-sm text-gray-500">{{ $ct->task_type }} | {{ $ct->channel }}</p>
                     @if($ct->targetPage)
-                        <a href="{{ route('sites.pages.show', [$ct->targetSite, $ct->targetPage]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                        <a href="{{ route('clinic.sites.pages.show', [$clinic, $ct->targetSite, $ct->targetPage]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">
                             {{ $ct->targetPage->title }} &rarr;
                         </a>
                     @endif

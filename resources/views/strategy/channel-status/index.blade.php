@@ -27,7 +27,7 @@
                         <span class="text-xs text-gray-400">{{ $task->targetSite->name }}</span>
                     @endif
                     @if($task->targetPage)
-                        <a href="{{ route('sites.pages.show', [$task->targetSite, $task->targetPage]) }}" class="text-xs text-indigo-600 ml-2">{{ $task->targetPage->title }} &rarr;</a>
+                        <a href="{{ route('clinic.sites.pages.show', [$clinic, $task->targetSite, $task->targetPage]) }}" class="text-xs text-indigo-600 ml-2">{{ $task->targetPage->title }} &rarr;</a>
                     @endif
                 </div>
                 @php

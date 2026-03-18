@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApprovalRecord;
+use App\Models\Clinic;
 use App\Models\ExceptionContent;
 use App\Models\Page;
 use App\Models\Site;
@@ -12,7 +13,7 @@ use Illuminate\Http\Request;
 
 class ExceptionContentController extends Controller
 {
-    public function index(Site $site)
+    public function index(Clinic $clinic, Site $site)
     {
         $exceptions = ExceptionContent::whereHas('page', fn($q) => $q->where('site_id', $site->id))
             ->with('page')
@@ -22,13 +23,13 @@ class ExceptionContentController extends Controller
         return view('exceptions.index', compact('site', 'exceptions'));
     }
 
-    public function create(Site $site)
+    public function create(Clinic $clinic, Site $site)
     {
         $pages = $site->pages()->whereIn('page_type', ['case', 'exception'])->get();
         return view('exceptions.create', compact('site', 'pages'));
     }
 
-    public function store(Request $request, Site $site, ComplianceCheckService $complianceService)
+    public function store(Request $request, Clinic $clinic, Site $site, ComplianceCheckService $complianceService)
     {
         $validated = $request->validate([
             'page_id' => 'required|exists:pages,id',
@@ -58,7 +59,7 @@ class ExceptionContentController extends Controller
             ->with('success', '例外コンテンツを作成し、コンプライアンスチェックを実行しました');
     }
 
-    public function show(Site $site, ExceptionContent $exception)
+    public function show(Clinic $clinic, Site $site, ExceptionContent $exception)
     {
         $exception->load(['page', 'firstApprover', 'finalApprover', 'approvalRecords.approver']);
         $complianceResults = $exception->compliance_check ?? [];
@@ -66,13 +67,13 @@ class ExceptionContentController extends Controller
         return view('exceptions.show', compact('site', 'exception', 'complianceResults'));
     }
 
-    public function edit(Site $site, ExceptionContent $exception)
+    public function edit(Clinic $clinic, Site $site, ExceptionContent $exception)
     {
         $pages = $site->pages()->whereIn('page_type', ['case', 'exception'])->get();
         return view('exceptions.edit', compact('site', 'exception', 'pages'));
     }
 
-    public function update(Request $request, Site $site, ExceptionContent $exception, ComplianceCheckService $complianceService)
+    public function update(Request $request, Clinic $clinic, Site $site, ExceptionContent $exception, ComplianceCheckService $complianceService)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:500',
@@ -93,7 +94,7 @@ class ExceptionContentController extends Controller
     /**
      * 一次承認（管理者）
      */
-    public function firstApprove(Site $site, ExceptionContent $exception)
+    public function firstApprove(Clinic $clinic, Site $site, ExceptionContent $exception)
     {
         if ($exception->status !== 'first_review') {
             return redirect()->back()->with('error', '一次承認待ち状態ではありません');
@@ -115,7 +116,7 @@ class ExceptionContentController extends Controller
     /**
      * 最終承認（院長/法務）
      */
-    public function finalApprove(Site $site, ExceptionContent $exception)
+    public function finalApprove(Clinic $clinic, Site $site, ExceptionContent $exception)
     {
         if ($exception->status !== 'final_review') {
             return redirect()->back()->with('error', '最終承認待ち状態ではありません');
@@ -137,7 +138,7 @@ class ExceptionContentController extends Controller
     /**
      * 公開申請（draft → first_review）
      */
-    public function submitForReview(Site $site, ExceptionContent $exception, ComplianceCheckService $complianceService)
+    public function submitForReview(Clinic $clinic, Site $site, ExceptionContent $exception, ComplianceCheckService $complianceService)
     {
         if ($exception->status !== 'draft') {
             return redirect()->back()->with('error', '下書き状態でのみ公開申請できます');
@@ -157,7 +158,7 @@ class ExceptionContentController extends Controller
     /**
      * 却下
      */
-    public function reject(Request $request, Site $site, ExceptionContent $exception)
+    public function reject(Request $request, Clinic $clinic, Site $site, ExceptionContent $exception)
     {
         $request->validate(['comment' => 'required|string']);
 

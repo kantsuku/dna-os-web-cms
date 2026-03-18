@@ -3,12 +3,12 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.exceptions.index', $site) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 例外コンテンツ一覧</a>
+    <a href="{{ route('clinic.sites.exceptions.index', [$clinic, $site]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 例外コンテンツ一覧</a>
 </div>
 
 <h1 class="text-2xl font-bold text-gray-900 mb-6">例外コンテンツ作成</h1>
 
-<form method="POST" action="{{ route('sites.exceptions.store', $site) }}" class="max-w-3xl">
+<form method="POST" action="{{ route('clinic.sites.exceptions.store', [$clinic, $site]) }}" class="max-w-3xl">
     @csrf
 
     <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-5">
@@ -80,7 +80,7 @@
 
         <div class="flex space-x-3 pt-4 border-t">
             <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded text-sm hover:bg-indigo-700">作成してチェック実行</button>
-            <a href="{{ route('sites.exceptions.index', $site) }}" class="bg-gray-100 text-gray-700 px-6 py-2 rounded text-sm hover:bg-gray-200">キャンセル</a>
+            <a href="{{ route('clinic.sites.exceptions.index', [$clinic, $site]) }}" class="bg-gray-100 text-gray-700 px-6 py-2 rounded text-sm hover:bg-gray-200">キャンセル</a>
         </div>
     </div>
 </form>

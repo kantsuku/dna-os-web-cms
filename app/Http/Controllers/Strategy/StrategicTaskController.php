@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Strategy;
 use App\Http\Controllers\Controller;
 use App\Models\ApprovalRecord;
 use App\Models\ChannelTask;
+use App\Models\Clinic;
 use App\Models\OrchestrationLog;
 use App\Models\StrategicTask;
 use Illuminate\Http\Request;
 
 class StrategicTaskController extends Controller
 {
-    public function index(Request $request)
+    public function index(Clinic $clinic, Request $request)
     {
         $query = StrategicTask::query()
             ->with('channelTasks')
@@ -31,7 +32,7 @@ class StrategicTaskController extends Controller
         return view('strategy.tasks.index', compact('tasks', 'pendingCount'));
     }
 
-    public function show(StrategicTask $strategicTask)
+    public function show(Clinic $clinic, StrategicTask $strategicTask)
     {
         $strategicTask->load([
             'channelTasks.targetPage',
@@ -43,7 +44,7 @@ class StrategicTaskController extends Controller
         return view('strategy.tasks.show', compact('strategicTask'));
     }
 
-    public function approve(StrategicTask $strategicTask)
+    public function approve(Clinic $clinic, StrategicTask $strategicTask)
     {
         if (!$strategicTask->canBeApproved()) {
             return redirect()->back()->with('error', 'このタスクは承認できません');
@@ -68,7 +69,7 @@ class StrategicTaskController extends Controller
         return redirect()->back()->with('success', '戦略タスクを承認しました');
     }
 
-    public function reject(Request $request, StrategicTask $strategicTask)
+    public function reject(Clinic $clinic, Request $request, StrategicTask $strategicTask)
     {
         $request->validate(['comment' => 'required|string']);
 
@@ -84,7 +85,7 @@ class StrategicTaskController extends Controller
         return redirect()->back()->with('success', '戦略タスクを却下しました');
     }
 
-    public function bulkApprove(Request $request)
+    public function bulkApprove(Clinic $clinic, Request $request)
     {
         $request->validate(['task_ids' => 'required|array']);
 

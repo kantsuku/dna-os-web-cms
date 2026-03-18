@@ -7,7 +7,7 @@
 {{-- 新規依頼フォーム --}}
 <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
     <h2 class="text-lg font-medium text-gray-900 mb-4">新規修正依頼</h2>
-    <form method="POST" action="{{ route('strategy.free-input.store') }}">
+    <form method="POST" action="{{ route('clinic.strategy.free-input.store', $clinic) }}">
         @csrf
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">対象サイト</label>

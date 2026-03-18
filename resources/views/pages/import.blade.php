@@ -2,7 +2,7 @@
 @section('title', '原稿取り込み - ' . $page->title)
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.pages.show', [$site, $page]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $page->title }}に戻る</a>
+    <a href="{{ route('clinic.sites.pages.show', [$clinic, $site, $page]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $page->title }}に戻る</a>
 </div>
 
 <h1 class="text-2xl font-bold mb-2">原稿取り込み</h1>
@@ -22,7 +22,7 @@
                 class="pb-2 border-b-2 text-sm font-medium">マークアップHTML直接入力</button>
     </div>
 
-    <form method="POST" action="{{ route('sites.pages.import', [$site, $page]) }}">
+    <form method="POST" action="{{ route('clinic.sites.pages.import', [$clinic, $site, $page]) }}">
         @csrf
 
         {{-- URL モード --}}
@@ -66,7 +66,7 @@
 
         <div class="mt-6 flex space-x-3">
             <button type="submit" class="bg-yellow-500 text-white px-6 py-2 rounded-md text-sm hover:bg-yellow-600">取り込み開始</button>
-            <a href="{{ route('sites.pages.show', [$site, $page]) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
+            <a href="{{ route('clinic.sites.pages.show', [$clinic, $site, $page]) }}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md text-sm hover:bg-gray-300">キャンセル</a>
         </div>
     </form>
 </div>

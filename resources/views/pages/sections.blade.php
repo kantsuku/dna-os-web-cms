@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.pages.show', [$site, $page]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; {{ $page->title }} に戻る</a>
+    <a href="{{ route('clinic.sites.pages.show', [$clinic, $site, $page]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; {{ $page->title }} に戻る</a>
 </div>
 
 <div class="flex justify-between items-center mb-6">
@@ -17,7 +17,7 @@
     <div class="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
         セクションがありません。コンテンツを取り込んでください。
         <div class="mt-4">
-            <a href="{{ route('sites.pages.import', [$site, $page]) }}" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">取り込み画面へ</a>
+            <a href="{{ route('clinic.sites.pages.import', [$clinic, $site, $page]) }}" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">取り込み画面へ</a>
         </div>
     </div>
 @else
@@ -46,7 +46,7 @@
                     <div class="flex items-center space-x-2">
                         {{-- ロック切り替え --}}
                         @if(($section['lock_status'] ?? 'unlocked') !== 'system_locked')
-                            <form method="POST" action="{{ route('sites.pages.sections.lock', [$site, $page, $section['section_id']]) }}">
+                            <form method="POST" action="{{ route('clinic.sites.pages.sections.lock', [$clinic, $site, $page, $section['section_id']]) }}">
                                 @csrf
                                 @if(($section['lock_status'] ?? 'unlocked') === 'unlocked')
                                     <input type="hidden" name="lock_status" value="human_locked">
@@ -59,7 +59,7 @@
                         @endif
 
                         {{-- 編集ボタン --}}
-                        <a href="{{ route('sites.pages.sections.edit', [$site, $page, $section['section_id']]) }}"
+                        <a href="{{ route('clinic.sites.pages.sections.edit', [$clinic, $site, $page, $section['section_id']]) }}"
                            class="text-xs text-indigo-600 hover:text-indigo-800 border border-indigo-300 px-2 py-1 rounded">
                             編集
                         </a>

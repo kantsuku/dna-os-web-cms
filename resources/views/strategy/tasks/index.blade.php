@@ -19,7 +19,7 @@
             @endforeach
         </select>
         <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">絞り込み</button>
-        <a href="{{ route('strategy.tasks.index') }}" class="text-sm text-gray-500 hover:text-gray-700">リセット</a>
+        <a href="{{ route('clinic.strategy.tasks.index', $clinic) }}" class="text-sm text-gray-500 hover:text-gray-700">リセット</a>
     </form>
 </div>
 
@@ -38,7 +38,7 @@
                         <span class="px-2 py-0.5 rounded text-xs bg-{{ $pc }}-100 text-{{ $pc }}-700">{{ $task->priority }}</span>
                         <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600">{{ $task->trigger_type }}</span>
                     </div>
-                    <a href="{{ route('strategy.tasks.show', $task) }}" class="text-lg font-medium text-gray-900 hover:text-indigo-600">{{ $task->title }}</a>
+                    <a href="{{ route('clinic.strategy.tasks.show', [$clinic, $task]) }}" class="text-lg font-medium text-gray-900 hover:text-indigo-600">{{ $task->title }}</a>
                     <p class="text-sm text-gray-500 mt-1">{{ Str::limit($task->description, 100) }}</p>
                 </div>
                 <div class="text-right ml-4">

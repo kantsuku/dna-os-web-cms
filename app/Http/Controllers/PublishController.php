@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Clinic;
 use App\Models\DeployRecord;
 use App\Models\Site;
 use App\Services\FtpDeployService;
@@ -10,7 +11,7 @@ use Illuminate\Http\Request;
 
 class PublishController extends Controller
 {
-    public function index(Site $site)
+    public function index(Clinic $clinic, Site $site)
     {
         $readyPages = $site->pages()
             ->where('status', 'ready')
@@ -25,11 +26,10 @@ class PublishController extends Controller
         return view('publish.index', compact('site', 'readyPages', 'history'));
     }
 
-    public function deploy(Request $request, Site $site, SiteBuildService $buildService, FtpDeployService $ftpService)
+    public function deploy(Request $request, Clinic $clinic, Site $site, SiteBuildService $buildService, FtpDeployService $ftpService)
     {
         $pageIds = $request->input('page_ids', []);
 
-        // 世代スナップショット
         $snapshot = [];
         $pages = $site->pages()->whereIn('id', $pageIds)->with('currentGeneration')->get();
         foreach ($pages as $page) {
@@ -38,7 +38,6 @@ class PublishController extends Controller
             }
         }
 
-        // ビルド
         $buildPath = $buildService->buildSite($site);
 
         $record = DeployRecord::create([
@@ -52,23 +51,21 @@ class PublishController extends Controller
         $success = $ftpService->deploy($site, $buildPath, $record);
 
         if ($success) {
-            // ページと世代のステータスを published に
             foreach ($pages as $page) {
                 $page->update(['status' => 'published']);
                 $page->currentGeneration?->update(['status' => 'published']);
             }
-
-            return redirect()->route('sites.publish.index', $site)->with('success', 'デプロイ完了');
+            return redirect()->route('clinic.sites.publish.index', [$clinic, $site])->with('success', 'デプロイ完了');
         }
 
-        return redirect()->route('sites.publish.index', $site)->with('error', 'デプロイ失敗: ' . $record->error_log);
+        return redirect()->route('clinic.sites.publish.index', [$clinic, $site])->with('error', 'デプロイ失敗: ' . $record->error_log);
     }
 
-    public function rollback(Site $site, DeployRecord $record, FtpDeployService $ftpService)
+    public function rollback(Clinic $clinic, Site $site, DeployRecord $record, FtpDeployService $ftpService)
     {
         $rollbackRecord = $ftpService->rollback($site, $record);
 
-        return redirect()->route('sites.publish.index', $site)->with(
+        return redirect()->route('clinic.sites.publish.index', [$clinic, $site])->with(
             $rollbackRecord->deploy_status === 'success' ? 'success' : 'error',
             $rollbackRecord->deploy_status === 'success' ? 'ロールバック完了' : 'ロールバック失敗',
         );

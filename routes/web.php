@@ -35,7 +35,9 @@ Route::middleware('auth')->group(function () {
     // ════════════════════════════════════════
     // 医院コンテキスト内（全てclinicスコープ）
     // ════════════════════════════════════════
-    Route::prefix('clinics/{clinic}')->name('clinic.')->group(function () {
+    Route::prefix('clinics/{clinic}')->name('clinic.')
+        ->middleware(\App\Http\Middleware\InjectClinic::class)
+        ->group(function () {
 
         // 医院ダッシュボード（作戦本部）
         Route::get('/', [ClinicController::class, 'dashboard'])->name('dashboard');

@@ -7,7 +7,7 @@
         <h1 class="text-2xl font-bold text-gray-900">承認待ち一覧</h1>
         <p class="text-sm text-gray-500 mt-1">{{ $pendingItems->count() }}件の承認待ち</p>
     </div>
-    <a href="{{ route('approvals.history') }}" class="text-sm text-indigo-600 hover:text-indigo-800">承認履歴 &rarr;</a>
+    <a href="{{ route('clinic.approvals.history', $clinic) }}" class="text-sm text-indigo-600 hover:text-indigo-800">承認履歴 &rarr;</a>
 </div>
 
 <div class="space-y-3">
@@ -34,7 +34,7 @@
 
                     @if($item['type'] === 'strategic_task')
                         <div class="mt-2">
-                            <a href="{{ route('strategy.tasks.show', $item['id']) }}" class="text-sm text-indigo-600 hover:text-indigo-800">詳細 &rarr;</a>
+                            <a href="{{ route('clinic.strategy.tasks.show', [$clinic, $item['id']]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">詳細 &rarr;</a>
                         </div>
                     @endif
                 </div>

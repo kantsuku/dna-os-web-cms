@@ -2,7 +2,7 @@
 @section('title', $page->title . ' - ' . $site->name)
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.show', $site) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
+    <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
 </div>
 
 <div class="flex justify-between items-center mb-6">
@@ -11,10 +11,10 @@
         <p class="text-sm text-gray-500 mt-1">/{{ $page->slug }} | タイプ: {{ $page->page_type }}</p>
     </div>
     <div class="flex space-x-3">
-        <a href="{{ route('sites.pages.import', [$site, $page]) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-600">原稿取り込み</a>
-        <a href="{{ route('sites.pages.sections', [$site, $page]) }}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">セクション管理</a>
-        <a href="{{ route('sites.pages.preview', [$site, $page]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700" target="_blank">プレビュー</a>
-        <a href="{{ route('sites.pages.edit', [$site, $page]) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300">設定編集</a>
+        <a href="{{ route('clinic.sites.pages.import', [$clinic, $site, $page]) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-600">原稿取り込み</a>
+        <a href="{{ route('clinic.sites.pages.sections', [$clinic, $site, $page]) }}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">セクション管理</a>
+        <a href="{{ route('clinic.sites.pages.preview', [$clinic, $site, $page]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700" target="_blank">プレビュー</a>
+        <a href="{{ route('clinic.sites.pages.edit', [$clinic, $site, $page]) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300">設定編集</a>
     </div>
 </div>
 
@@ -100,7 +100,7 @@
                 <td class="px-6 py-4 text-sm text-gray-500">{{ $gen->created_at->format('Y-m-d H:i') }}</td>
                 <td class="px-6 py-4 text-right">
                     @if($gen->status === 'draft')
-                    <form method="POST" action="{{ route('sites.pages.generations.ready', [$site, $page, $gen]) }}" class="inline">
+                    <form method="POST" action="{{ route('clinic.sites.pages.generations.ready', [$clinic, $site, $page, $gen]) }}" class="inline">
                         @csrf
                         <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600"
                             onclick="return confirm('この世代をready状態にしますか？')">

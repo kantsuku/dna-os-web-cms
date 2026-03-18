@@ -3,7 +3,7 @@
 @section('content')
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">サイト一覧</h1>
-    <a href="{{ route('sites.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">新規サイト作成</a>
+    <a href="{{ route('clinic.sites.create', $clinic) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">新規サイト作成</a>
 </div>
 
 <div class="bg-white rounded-lg shadow">
@@ -31,8 +31,8 @@
                     </span>
                 </td>
                 <td class="px-6 py-4 text-right space-x-2">
-                    <a href="{{ route('sites.show', $site) }}" class="text-indigo-600 hover:underline text-sm">詳細</a>
-                    <a href="{{ route('sites.edit', $site) }}" class="text-gray-600 hover:underline text-sm">編集</a>
+                    <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="text-indigo-600 hover:underline text-sm">詳細</a>
+                    <a href="{{ route('clinic.sites.edit', [$clinic, $site]) }}" class="text-gray-600 hover:underline text-sm">編集</a>
                 </td>
             </tr>
             @empty

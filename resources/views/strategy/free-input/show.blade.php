@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('strategy.free-input.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 依頼一覧に戻る</a>
+    <a href="{{ route('clinic.strategy.free-input.index', $clinic) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 依頼一覧に戻る</a>
 </div>
 
 <h1 class="text-2xl font-bold text-gray-900 mb-6">修正依頼詳細</h1>
@@ -65,11 +65,11 @@
 
         @if($freeInputRequest->interpretation_status === 'interpreted')
             <div class="flex space-x-3 pt-4 border-t">
-                <form method="POST" action="{{ route('strategy.free-input.confirm', $freeInputRequest) }}">
+                <form method="POST" action="{{ route('clinic.strategy.free-input.confirm', [$clinic, $freeInputRequest]) }}">
                     @csrf
                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">この解釈で合っている → タスク生成</button>
                 </form>
-                <form method="POST" action="{{ route('strategy.free-input.reject', $freeInputRequest) }}">
+                <form method="POST" action="{{ route('clinic.strategy.free-input.reject', [$clinic, $freeInputRequest]) }}">
                     @csrf
                     <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">却下する</button>
                 </form>
@@ -86,7 +86,7 @@
 @if($freeInputRequest->strategicTask)
     <div class="bg-white rounded-lg border border-gray-200 p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">生成されたタスク</h2>
-        <a href="{{ route('strategy.tasks.show', $freeInputRequest->strategicTask) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+        <a href="{{ route('clinic.strategy.tasks.show', [$clinic, $freeInputRequest->strategicTask]) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
             {{ $freeInputRequest->strategicTask->id }}: {{ $freeInputRequest->strategicTask->title }} &rarr;
         </a>
         @if($freeInputRequest->strategicTask->channelTasks)

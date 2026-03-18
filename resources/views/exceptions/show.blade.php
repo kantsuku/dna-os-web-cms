@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.exceptions.index', $site) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 例外コンテンツ一覧</a>
+    <a href="{{ route('clinic.sites.exceptions.index', [$clinic, $site]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 例外コンテンツ一覧</a>
 </div>
 
 <div class="flex justify-between items-start mb-6">
@@ -20,7 +20,7 @@
             $sc = $sColors[$exception->status] ?? 'gray';
         @endphp
         <span class="px-3 py-1 rounded text-sm bg-{{ $sc }}-100 text-{{ $sc }}-700 font-medium">{{ $exception->status }}</span>
-        <a href="{{ route('sites.exceptions.edit', [$site, $exception]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">編集</a>
+        <a href="{{ route('clinic.sites.exceptions.edit', [$clinic, $site, $exception]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">編集</a>
     </div>
 </div>
 
@@ -87,17 +87,17 @@
     <h2 class="text-lg font-medium text-gray-900 mb-4">アクション</h2>
 
     @if($exception->status === 'draft')
-        <form method="POST" action="{{ route('sites.exceptions.submit-review', [$site, $exception]) }}">
+        <form method="POST" action="{{ route('clinic.sites.exceptions.submit-review', [$clinic, $site, $exception]) }}">
             @csrf
             <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm hover:bg-yellow-600">公開申請する（一次承認へ）</button>
         </form>
     @elseif($exception->status === 'first_review')
         <div class="flex space-x-3">
-            <form method="POST" action="{{ route('sites.exceptions.first-approve', [$site, $exception]) }}">
+            <form method="POST" action="{{ route('clinic.sites.exceptions.first-approve', [$clinic, $site, $exception]) }}">
                 @csrf
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">一次承認する</button>
             </form>
-            <form method="POST" action="{{ route('sites.exceptions.reject', [$site, $exception]) }}" x-data="{ show: false }">
+            <form method="POST" action="{{ route('clinic.sites.exceptions.reject', [$clinic, $site, $exception]) }}" x-data="{ show: false }">
                 @csrf
                 <button type="button" @click="show = !show" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">却下</button>
                 <div x-show="show" class="mt-2">
@@ -109,11 +109,11 @@
         <p class="text-xs text-gray-400 mt-2">一次承認者: 管理者</p>
     @elseif($exception->status === 'final_review')
         <div class="flex space-x-3">
-            <form method="POST" action="{{ route('sites.exceptions.final-approve', [$site, $exception]) }}">
+            <form method="POST" action="{{ route('clinic.sites.exceptions.final-approve', [$clinic, $site, $exception]) }}">
                 @csrf
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">最終承認する</button>
             </form>
-            <form method="POST" action="{{ route('sites.exceptions.reject', [$site, $exception]) }}" x-data="{ show: false }">
+            <form method="POST" action="{{ route('clinic.sites.exceptions.reject', [$clinic, $site, $exception]) }}" x-data="{ show: false }">
                 @csrf
                 <button type="button" @click="show = !show" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">却下</button>
                 <div x-show="show" class="mt-2">

@@ -2,7 +2,7 @@
 @section('title', $site->name)
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('sites.index') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; サイト一覧に戻る</a>
+    <a href="{{ route('clinic.sites.index', $clinic) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; サイト一覧に戻る</a>
 </div>
 
 <div class="flex justify-between items-center mb-6">
@@ -11,9 +11,9 @@
         <p class="text-sm text-gray-500 mt-1">{{ $site->domain ?? 'ドメイン未設定' }}</p>
     </div>
     <div class="flex space-x-3">
-        <a href="{{ route('sites.edit', $site) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300">サイト設定</a>
-        <a href="{{ route('sites.publish.index', $site) }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">公開管理</a>
-        <a href="{{ route('design.site', $site) }}" class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700">デザイン設定</a>
+        <a href="{{ route('clinic.sites.edit', [$clinic, $site]) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300">サイト設定</a>
+        <a href="{{ route('clinic.sites.publish.index', [$clinic, $site]) }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">公開管理</a>
+        <a href="{{ route('clinic.design.site', [$clinic, $site]) }}" class="bg-purple-600 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700">デザイン設定</a>
     </div>
 </div>
 
@@ -21,7 +21,7 @@
 <div class="bg-white rounded-lg shadow mb-8">
     <div class="px-6 py-4 border-b flex justify-between items-center">
         <h2 class="text-lg font-semibold">ページ一覧</h2>
-        <a href="{{ route('sites.pages.create', $site) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">ページ追加</a>
+        <a href="{{ route('clinic.sites.pages.create', [$clinic, $site]) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">ページ追加</a>
     </div>
     <table class="w-full">
         <thead class="bg-gray-50">
@@ -59,7 +59,7 @@
                     </span>
                 </td>
                 <td class="px-6 py-4 text-right">
-                    <a href="{{ route('sites.pages.show', [$site, $page]) }}" class="text-indigo-600 hover:underline text-sm">管理</a>
+                    <a href="{{ route('clinic.sites.pages.show', [$clinic, $site, $page]) }}" class="text-indigo-600 hover:underline text-sm">管理</a>
                 </td>
             </tr>
             @empty

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Strategy;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clinic;
 use App\Models\FreeInputRequest;
 use App\Models\Site;
 use App\Services\Strategy\AiInterpretationService;
@@ -11,7 +12,7 @@ use Illuminate\Http\Request;
 
 class FreeInputController extends Controller
 {
-    public function index()
+    public function index(Clinic $clinic)
     {
         $requests = FreeInputRequest::with(['site', 'submitter', 'strategicTask'])
             ->orderByDesc('created_at')
@@ -22,7 +23,7 @@ class FreeInputController extends Controller
         return view('strategy.free-input.index', compact('requests', 'sites'));
     }
 
-    public function store(Request $request, AiInterpretationService $aiService)
+    public function store(Clinic $clinic, Request $request, AiInterpretationService $aiService)
     {
         $validated = $request->validate([
             'site_id' => 'required|exists:sites,id',
@@ -42,18 +43,18 @@ class FreeInputController extends Controller
         // AI解釈を実行
         $aiService->interpretAndSave($freeInput);
 
-        return redirect()->route('strategy.free-input.show', $freeInput)
+        return redirect()->route('clinic.strategy.free-input.show', [$clinic, $freeInput])
             ->with('success', '修正依頼を送信し、AI解釈を実行しました');
     }
 
-    public function show(FreeInputRequest $freeInputRequest)
+    public function show(Clinic $clinic, FreeInputRequest $freeInputRequest)
     {
         $freeInputRequest->load(['site', 'submitter', 'strategicTask.channelTasks']);
 
         return view('strategy.free-input.show', compact('freeInputRequest'));
     }
 
-    public function confirm(FreeInputRequest $freeInputRequest, TaskGenerationService $taskService)
+    public function confirm(Clinic $clinic, FreeInputRequest $freeInputRequest, TaskGenerationService $taskService)
     {
         if ($freeInputRequest->interpretation_status !== 'interpreted') {
             return redirect()->back()->with('error', 'AI解釈がまだ完了していません');
@@ -84,14 +85,14 @@ class FreeInputController extends Controller
             'strategic_task_id' => $st->id,
         ]);
 
-        return redirect()->route('strategy.tasks.show', $st)
+        return redirect()->route('clinic.strategy.tasks.show', [$clinic, $st])
             ->with('success', '解釈を確認し、タスクを生成しました');
     }
 
-    public function reject(FreeInputRequest $freeInputRequest)
+    public function reject(Clinic $clinic, FreeInputRequest $freeInputRequest)
     {
         $freeInputRequest->update(['interpretation_status' => 'rejected']);
-        return redirect()->route('strategy.free-input.index')
+        return redirect()->route('clinic.strategy.free-input.index', $clinic)
             ->with('success', '修正依頼を却下しました');
     }
 }

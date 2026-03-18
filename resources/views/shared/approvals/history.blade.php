@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-6">
-    <a href="{{ route('approvals.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 承認待ちに戻る</a>
+    <a href="{{ route('clinic.approvals.index', $clinic) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; 承認待ちに戻る</a>
 </div>
 
 <h1 class="text-2xl font-bold text-gray-900 mb-6">承認履歴</h1>
