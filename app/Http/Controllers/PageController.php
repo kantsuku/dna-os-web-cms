@@ -7,6 +7,7 @@ use App\Models\PageGeneration;
 use App\Models\Site;
 use App\Services\ContentImportService;
 use App\Services\SiteBuildService;
+use App\Services\Web\SectionParseService;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
@@ -34,7 +35,6 @@ class PageController extends Controller
             'sort_order' => ['nullable', 'integer'],
         ]);
 
-        // コンテンツ分類の自動設定
         $validated['content_classification'] = Page::classifyByPageType($validated['page_type']);
         $validated['template_key'] = $validated['template_key'] ?? 'generic';
 
@@ -45,7 +45,8 @@ class PageController extends Controller
     public function show(Site $site, Page $page)
     {
         $page->load(['generations' => fn ($q) => $q->orderByDesc('generation')->limit(10), 'currentGeneration']);
-        return view('pages.show', compact('site', 'page'));
+        $sections = $page->currentGeneration?->sections ?? [];
+        return view('pages.show', compact('site', 'page', 'sections'));
     }
 
     public function edit(Site $site, Page $page)
@@ -71,45 +72,130 @@ class PageController extends Controller
         return redirect()->route('sites.pages.show', [$site, $page])->with('success', 'ページを更新しました');
     }
 
-    /**
-     * 原稿取り込み画面
-     */
+    // ─── 原稿取り込み ───
+
     public function importForm(Site $site, Page $page)
     {
         return view('pages.import', compact('site', 'page'));
     }
 
-    /**
-     * 原稿取り込み実行
-     */
     public function import(Request $request, Site $site, Page $page, ContentImportService $importService)
     {
         $request->validate([
-            'source_url' => ['required', 'url'],
+            'source_url' => ['nullable', 'url'],
+            'markup_text' => ['nullable', 'string'],
         ]);
 
         try {
-            $html = $importService->fetchFromUrl($request->input('source_url'));
-            $generation = $importService->importToPage($page, $html, $request->input('source_url'), auth()->id());
+            if ($request->filled('markup_text')) {
+                // マークアップTXT直接入力
+                $generation = $importService->importFromMarkupText(
+                    $page, $request->input('markup_text'), auth()->id()
+                );
+            } elseif ($request->filled('source_url')) {
+                // URL取得
+                $html = $importService->fetchFromUrl($request->input('source_url'));
+                $generation = $importService->importToPage(
+                    $page, $html, $request->input('source_url'), auth()->id()
+                );
+            } else {
+                return redirect()->back()->with('error', 'URLまたはマークアップHTMLを入力してください')->withInput();
+            }
 
-            return redirect()->route('sites.pages.show', [$site, $page])->with('success', "世代{$generation->generation}として取り込みました");
+            $sectionsCount = count($generation->sections ?? []);
+            $skipped = $generation->meta_json['skipped_sections'] ?? [];
+            $msg = "世代{$generation->generation}として取り込みました（{$sectionsCount}セクション）";
+            if (!empty($skipped)) {
+                $msg .= '。' . count($skipped) . 'セクションはロックのためスキップされました';
+            }
+
+            return redirect()->route('sites.pages.show', [$site, $page])->with('success', $msg);
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', '取り込み失敗: ' . $e->getMessage())->withInput();
         }
     }
 
-    /**
-     * 微細編集画面
-     */
+    // ─── セクション管理 ───
+
+    public function sections(Site $site, Page $page)
+    {
+        $generation = $page->currentGeneration ?? $page->generations()->orderByDesc('generation')->first();
+        $sections = $generation?->sections ?? [];
+
+        return view('pages.sections', compact('site', 'page', 'generation', 'sections'));
+    }
+
+    public function editSection(Site $site, Page $page, string $sectionId)
+    {
+        $generation = $page->currentGeneration ?? $page->generations()->orderByDesc('generation')->first();
+        if (!$generation) {
+            return redirect()->route('sites.pages.show', [$site, $page])->with('error', '世代がありません');
+        }
+
+        $section = $generation->getSection($sectionId);
+        if (!$section) {
+            return redirect()->route('sites.pages.sections', [$site, $page])->with('error', 'セクションが見つかりません');
+        }
+
+        return view('pages.edit-section', compact('site', 'page', 'generation', 'section', 'sectionId'));
+    }
+
+    public function updateSection(Request $request, Site $site, Page $page, string $sectionId, ContentImportService $importService)
+    {
+        $request->validate([
+            'content_html' => ['required', 'string'],
+            'patch_reason' => ['required', 'string'],
+            'lock_after_edit' => ['nullable', 'boolean'],
+        ]);
+
+        $generation = $page->currentGeneration ?? $page->generations()->orderByDesc('generation')->first();
+        if (!$generation) {
+            return redirect()->back()->with('error', '世代がありません');
+        }
+
+        $importService->applySectionPatch(
+            $generation,
+            $sectionId,
+            $request->input('content_html'),
+            $request->input('patch_reason'),
+            auth()->id(),
+            (bool) $request->input('lock_after_edit', false),
+        );
+
+        return redirect()->route('sites.pages.sections', [$site, $page])->with('success', 'セクションを更新しました');
+    }
+
+    public function toggleLock(Request $request, Site $site, Page $page, string $sectionId, ContentImportService $importService)
+    {
+        $request->validate([
+            'lock_status' => ['required', 'in:unlocked,human_locked'],
+        ]);
+
+        $generation = $page->currentGeneration ?? $page->generations()->orderByDesc('generation')->first();
+        if (!$generation) {
+            return redirect()->back()->with('error', '世代がありません');
+        }
+
+        $importService->toggleSectionLock($generation, $sectionId, $request->input('lock_status'));
+        $label = $request->input('lock_status') === 'human_locked' ? 'ロック' : 'アンロック';
+
+        return redirect()->route('sites.pages.sections', [$site, $page])->with('success', "セクションを{$label}しました");
+    }
+
+    // ─── 微細編集（v2互換 - セクションなしの場合） ───
+
     public function editContent(Site $site, Page $page)
     {
         $generation = $page->currentGeneration ?? $page->generations()->orderByDesc('generation')->first();
+
+        // セクションがある場合はセクション編集に誘導
+        if ($generation && $generation->hasSections()) {
+            return redirect()->route('sites.pages.sections', [$site, $page]);
+        }
+
         return view('pages.edit-content', compact('site', 'page', 'generation'));
     }
 
-    /**
-     * 微細編集保存
-     */
     public function updateContent(Request $request, Site $site, Page $page, ContentImportService $importService)
     {
         $request->validate([
@@ -127,9 +213,8 @@ class PageController extends Controller
         return redirect()->route('sites.pages.show', [$site, $page])->with('success', '微細編集を保存しました');
     }
 
-    /**
-     * 世代をreadyに
-     */
+    // ─── 世代管理 ───
+
     public function markReady(Site $site, Page $page, PageGeneration $generation)
     {
         $generation->update(['status' => 'ready']);
@@ -138,17 +223,11 @@ class PageController extends Controller
         return redirect()->route('sites.pages.show', [$site, $page])->with('success', '公開準備完了にしました');
     }
 
-    /**
-     * プレビュー
-     */
     public function preview(Site $site, Page $page, SiteBuildService $buildService)
     {
         return response($buildService->previewPage($site, $page));
     }
 
-    /**
-     * 世代比較
-     */
     public function compareGenerations(Site $site, Page $page, Request $request)
     {
         $gen1 = PageGeneration::findOrFail($request->input('gen1'));

@@ -72,7 +72,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/sites/{site}/pages/{page}/import', [PageController::class, 'importForm'])->name('sites.pages.import');
     Route::post('/sites/{site}/pages/{page}/import', [PageController::class, 'import']);
 
-    // 微細編集
+    // セクション管理
+    Route::get('/sites/{site}/pages/{page}/sections', [PageController::class, 'sections'])->name('sites.pages.sections');
+    Route::get('/sites/{site}/pages/{page}/sections/{sectionId}/edit', [PageController::class, 'editSection'])->name('sites.pages.sections.edit');
+    Route::put('/sites/{site}/pages/{page}/sections/{sectionId}', [PageController::class, 'updateSection'])->name('sites.pages.sections.update');
+    Route::post('/sites/{site}/pages/{page}/sections/{sectionId}/lock', [PageController::class, 'toggleLock'])->name('sites.pages.sections.lock');
+
+    // 微細編集（v2互換）
     Route::get('/sites/{site}/pages/{page}/edit-content', [PageController::class, 'editContent'])->name('sites.pages.edit-content');
     Route::put('/sites/{site}/pages/{page}/update-content', [PageController::class, 'updateContent'])->name('sites.pages.update-content');
 

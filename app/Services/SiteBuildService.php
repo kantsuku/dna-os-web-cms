@@ -57,7 +57,13 @@ class SiteBuildService
     public function buildPage(Site $site, Page $page, string $buildPath): void
     {
         $generation = $page->currentGeneration;
-        $contentHtml = $generation->final_html;
+
+        // v3: sectionsがある場合はそこからfinal_htmlを再構築
+        if ($generation->hasSections()) {
+            $contentHtml = $generation->buildFinalHtml();
+        } else {
+            $contentHtml = $generation->final_html;
+        }
 
         $html = $this->wrapInLayout($site, $page, $contentHtml);
 

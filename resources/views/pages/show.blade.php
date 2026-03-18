@@ -12,7 +12,7 @@
     </div>
     <div class="flex space-x-3">
         <a href="{{ route('sites.pages.import', [$site, $page]) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-600">原稿取り込み</a>
-        <a href="{{ route('sites.pages.edit-content', [$site, $page]) }}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">微細編集</a>
+        <a href="{{ route('sites.pages.sections', [$site, $page]) }}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">セクション管理</a>
         <a href="{{ route('sites.pages.preview', [$site, $page]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700" target="_blank">プレビュー</a>
         <a href="{{ route('sites.pages.edit', [$site, $page]) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300">設定編集</a>
     </div>
@@ -22,7 +22,12 @@
 @if($page->currentGeneration)
 <div class="bg-white rounded-lg shadow mb-8">
     <div class="px-6 py-4 border-b flex justify-between items-center">
-        <h2 class="text-lg font-semibold">現在のコンテンツ（世代 {{ $page->currentGeneration->generation }}）</h2>
+        <h2 class="text-lg font-semibold">
+            現在のコンテンツ（世代 {{ $page->currentGeneration->generation }}）
+            @if(!empty($sections))
+                <span class="text-sm font-normal text-gray-500 ml-2">{{ count($sections) }}セクション</span>
+            @endif
+        </h2>
         <span class="px-2 py-1 text-xs rounded-full {{ $page->currentGeneration->status === 'ready' ? 'bg-blue-100 text-blue-800' : ($page->currentGeneration->status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800') }}">
             {{ $page->currentGeneration->status }}
         </span>
