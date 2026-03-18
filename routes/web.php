@@ -11,6 +11,7 @@ use App\Http\Controllers\Strategy\FreeInputController;
 use App\Http\Controllers\Strategy\DnaOsUpdateController;
 use App\Http\Controllers\Strategy\ChannelStatusController;
 use App\Http\Controllers\Shared\ApprovalController;
+use App\Http\Controllers\Web\ExceptionContentController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -88,6 +89,20 @@ Route::middleware('auth')->group(function () {
     // 世代管理
     Route::post('/sites/{site}/pages/{page}/generations/{generation}/ready', [PageController::class, 'markReady'])->name('sites.pages.generations.ready');
     Route::get('/sites/{site}/pages/{page}/compare', [PageController::class, 'compareGenerations'])->name('sites.pages.compare');
+
+    // ════════════════════════════════════════
+    // 例外コンテンツ (EXC)
+    // ════════════════════════════════════════
+    Route::get('/sites/{site}/exceptions', [ExceptionContentController::class, 'index'])->name('sites.exceptions.index');
+    Route::get('/sites/{site}/exceptions/create', [ExceptionContentController::class, 'create'])->name('sites.exceptions.create');
+    Route::post('/sites/{site}/exceptions', [ExceptionContentController::class, 'store'])->name('sites.exceptions.store');
+    Route::get('/sites/{site}/exceptions/{exception}', [ExceptionContentController::class, 'show'])->name('sites.exceptions.show');
+    Route::get('/sites/{site}/exceptions/{exception}/edit', [ExceptionContentController::class, 'edit'])->name('sites.exceptions.edit');
+    Route::put('/sites/{site}/exceptions/{exception}', [ExceptionContentController::class, 'update'])->name('sites.exceptions.update');
+    Route::post('/sites/{site}/exceptions/{exception}/submit-review', [ExceptionContentController::class, 'submitForReview'])->name('sites.exceptions.submit-review');
+    Route::post('/sites/{site}/exceptions/{exception}/first-approve', [ExceptionContentController::class, 'firstApprove'])->name('sites.exceptions.first-approve');
+    Route::post('/sites/{site}/exceptions/{exception}/final-approve', [ExceptionContentController::class, 'finalApprove'])->name('sites.exceptions.final-approve');
+    Route::post('/sites/{site}/exceptions/{exception}/reject', [ExceptionContentController::class, 'reject'])->name('sites.exceptions.reject');
 
     // ════════════════════════════════════════
     // 公開管理 (PUB)
