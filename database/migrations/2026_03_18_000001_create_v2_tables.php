@@ -29,13 +29,15 @@ return new class extends Migration
         // コンポーネント定義
         Schema::create('components', function (Blueprint $table) {
             $table->id();
-            $table->string('key', 100)->unique();
+            $table->string('key', 100)->unique(); // 現行キー (com-h2 等)
+            $table->string('migration_key', 100)->nullable(); // 将来の移行先キー (acms-h2 等)
             $table->string('name', 255);
             $table->string('category', 50); // heading, layout, content, cta, utility
             $table->text('html_template')->nullable();
             $table->json('default_styles')->nullable();
             $table->text('preview_html')->nullable();
             $table->text('description')->nullable();
+            $table->json('variants')->nullable(); // バリエーション (_white, _lg 等)
             $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
