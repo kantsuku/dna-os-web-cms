@@ -37,11 +37,18 @@
     </div>
 
     {{-- メタ情報 --}}
-    <div class="flex items-center space-x-3 flex-shrink-0 text-xs">
+    <div class="flex items-center space-x-2 flex-shrink-0 text-xs">
         @if($sectionsCount > 0)
             <span class="text-gray-400">{{ $sectionsCount }}sec</span>
         @endif
         <span class="text-gray-400">G{{ $page->currentGeneration?->generation ?? '-' }}</span>
-        <span class="px-1.5 py-0.5 rounded text-xs {{ ['draft' => 'bg-gray-100 text-gray-600', 'ready' => 'bg-blue-100 text-blue-600', 'published' => 'bg-green-100 text-green-600'][$status] ?? 'bg-gray-100 text-gray-600' }}">{{ $status }}</span>
+        @php
+            $statusLabel = ['draft' => '下書き', 'ready' => '公開準備', 'published' => '公開中', 'received' => '取込済', 'approved' => '承認済'][$status] ?? $status;
+            $statusStyle = ['draft' => 'bg-gray-100 text-gray-600', 'ready' => 'bg-blue-100 text-blue-700', 'published' => 'bg-green-100 text-green-700', 'received' => 'bg-yellow-100 text-yellow-700', 'approved' => 'bg-indigo-100 text-indigo-700'][$status] ?? 'bg-gray-100 text-gray-600';
+        @endphp
+        <span class="px-1.5 py-0.5 rounded {{ $statusStyle }}">{{ $statusLabel }}</span>
+        @if($page->is_published)
+            <span class="w-2 h-2 rounded-full bg-green-500" title="公開中"></span>
+        @endif
     </div>
 </a>
