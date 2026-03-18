@@ -80,8 +80,7 @@ Route::middleware('auth')->group(function () {
         // ── ページ管理 (PAGE) ──
         Route::resource('sites.pages', PageController::class);
         Route::get('/sites/{site}/pages/{page}/preview', [PageController::class, 'preview'])->name('sites.pages.preview');
-        Route::get('/sites/{site}/pages/{page}/content-frame', [PageController::class, 'contentFrame'])->name('sites.pages.content-frame');
-        Route::get('/sites/{site}/pages/{page}/section-frame/{sectionId}', [PageController::class, 'sectionFrame'])->name('sites.pages.section-frame');
+        // content-frame, section-frame は public ルートに移動済み
 
         // コンテンツ取り込み
         Route::get('/sites/{site}/pages/{page}/import', [PageController::class, 'importForm'])->name('sites.pages.import');
@@ -126,7 +125,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/design/tokens', [DesignController::class, 'updateTokens'])->name('design.tokens.update');
         Route::get('/design/components', [DesignController::class, 'components'])->name('design.components');
         Route::get('/design/components/{component}', [DesignController::class, 'componentShow'])->name('design.components.show');
-        Route::get('/design/components/{component}/preview-frame', [DesignController::class, 'componentPreviewFrame'])->name('design.components.preview-frame');
+        // component preview-frame は public ルートに移動済み
         Route::get('/design/components/{component}/edit', [DesignController::class, 'componentEdit'])->name('design.components.edit');
         Route::put('/design/components/{component}', [DesignController::class, 'componentUpdate'])->name('design.components.update');
         Route::get('/sites/{site}/design', [DesignController::class, 'siteDesign'])->name('design.site');

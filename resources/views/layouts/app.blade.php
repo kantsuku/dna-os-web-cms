@@ -35,8 +35,8 @@
             background: radial-gradient(ellipse 120% 80% at 50% 100%, rgba(180,170,160,0.12) 0%, transparent 70%);
             pointer-events: none;
         }
-        .cc-logo { font-family: 'Courier New', monospace; letter-spacing: 0.15em; }
-        .cc-glow { text-shadow: 0 0 20px rgba(100,200,255,0.3), 0 0 40px rgba(100,200,255,0.1); }
+        .cc-logo { font-family: 'Courier New', monospace; letter-spacing: 0.2em; }
+        .cc-glow { text-shadow: 0 0 30px rgba(100,200,255,0.5), 0 0 60px rgba(100,200,255,0.2), 0 0 100px rgba(100,200,255,0.1); }
     </style>
     @livewireStyles
 </head>
@@ -45,11 +45,11 @@
     {{-- ===== C&C メインヘッダー ===== --}}
     <header class="cc-header relative z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-14 relative z-10">
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('clinics.select') }}" class="flex items-center space-x-2">
-                        <span class="cc-logo text-xl font-bold text-white cc-glow tracking-widest">C&C</span>
-                        <span class="text-[10px] text-gray-400 hidden sm:block leading-tight">COMMAND<br>&amp; CONTROL</span>
+            <div class="flex justify-between items-center h-16 relative z-10">
+                <div class="flex items-center space-x-5">
+                    <a href="{{ route('clinics.select') }}" class="flex items-center space-x-3 group">
+                        <span class="cc-logo text-4xl font-black text-white cc-glow tracking-widest group-hover:scale-105 transition-transform">C&C</span>
+                        <span class="text-[10px] text-gray-400 hidden sm:block leading-tight uppercase tracking-widest">Command<br>&amp; Control</span>
                     </a>
                     @if(isset($clinic))
                         <span class="text-gray-600">|</span>
