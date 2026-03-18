@@ -38,6 +38,30 @@ class DesignController extends Controller
         return view('design.component-show', compact('component'));
     }
 
+    /**
+     * コンポーネントプレビュー（com-CSS適用、iframe用）
+     */
+    public function componentPreviewFrame(Clinic $clinic, Component $component)
+    {
+        $previewHtml = $component->preview_html ?? $component->html_template ?? '<p style="color:#999">プレビューなし</p>';
+        $baseCss = file_get_contents(resource_path('site-assets/default/css/theme-base.css'));
+
+        return response(<<<HTML
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+{$baseCss}
+body { margin: 0; padding: 16px; }
+</style>
+</head>
+<body>{$previewHtml}</body>
+</html>
+HTML);
+    }
+
     public function componentEdit(Clinic $clinic, Component $component)
     {
         return view('design.component-edit', compact('component'));

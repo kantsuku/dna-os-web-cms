@@ -35,24 +35,13 @@
                 </div>
             </div>
 
-            {{-- プレビュー --}}
-            <div class="p-4 border-b min-h-[80px]">
-                @if($component->preview_html)
-                    <div class="rounded bg-gray-50 p-3 overflow-hidden max-h-48 text-sm">
-                        {!! $component->preview_html !!}
-                    </div>
-                @elseif($component->html_template)
-                    <div class="rounded bg-gray-50 p-3 overflow-hidden max-h-48 text-sm">
-                        {!! $component->html_template !!}
-                    </div>
-                @else
-                    {{-- CSSクラス名からサンプルプレビューを生成 --}}
-                    <div class="rounded bg-gray-50 p-3 text-sm">
-                        <div class="{{ $component->key }}" style="min-height: 40px; border: 1px dashed #ddd; padding: 8px; border-radius: 4px;">
-                            <span class="text-gray-400 text-xs">.{{ $component->key }}</span>
-                        </div>
-                    </div>
-                @endif
+            {{-- プレビュー（iframe + com-CSS適用） --}}
+            <div class="border-b">
+                <iframe src="{{ route('clinic.design.components.preview-frame', [$clinic, $component]) }}"
+                        class="w-full border-0"
+                        style="height: 120px;"
+                        onload="this.style.height = Math.min(200, Math.max(80, this.contentDocument.documentElement.scrollHeight)) + 'px'"
+                ></iframe>
             </div>
 
             {{-- 説明 + HTMLテンプレート --}}

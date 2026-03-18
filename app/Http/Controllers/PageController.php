@@ -184,6 +184,109 @@ class PageController extends Controller
         return redirect()->route('clinic.sites.pages.sections', [$clinic, $site, $page])->with('success', "セクションを{$label}しました");
     }
 
+    /**
+     * セクション追加
+     */
+    public function addSection(Request $request, Clinic $clinic, Site $site, Page $page)
+    {
+        $request->validate([
+            'heading' => 'required|string|max:255',
+            'after_section_id' => 'nullable|string',
+        ]);
+
+        $generation = $page->currentGeneration;
+        if (!$generation) {
+            return redirect()->back()->with('error', '世代がありません');
+        }
+
+        $sections = $generation->sections ?? [];
+        $newId = 'sec_' . sprintf('%02d', count($sections) + 1);
+        $newSection = [
+            'section_id' => $newId,
+            'heading' => $request->input('heading'),
+            'content_html' => '<section class="com-section"><div class="com-contentWidth"><h2 class="com-h2 mt0">' . e($request->input('heading')) . '</h2><p>ここにコンテンツを入力してください。</p></div></section>',
+            'lock_status' => 'unlocked',
+            'last_modified_by' => 'human:' . auth()->id(),
+            'last_modified_at' => now()->toIso8601String(),
+            'order' => count($sections) + 1,
+        ];
+
+        $afterId = $request->input('after_section_id');
+        if ($afterId) {
+            $insertAt = collect($sections)->search(fn($s) => $s['section_id'] === $afterId);
+            if ($insertAt !== false) {
+                array_splice($sections, $insertAt + 1, 0, [$newSection]);
+            } else {
+                $sections[] = $newSection;
+            }
+        } else {
+            $sections[] = $newSection;
+        }
+
+        // order再番号
+        foreach ($sections as $i => &$s) { $s['order'] = $i + 1; }
+        unset($s);
+
+        $generation->update([
+            'sections' => $sections,
+            'final_html' => app(\App\Services\Web\SectionParseService::class)->buildFinalHtml($sections),
+        ]);
+
+        return redirect()->route('clinic.sites.pages.show', [$clinic, $site, $page])->with('success', 'セクションを追加しました');
+    }
+
+    /**
+     * セクション削除
+     */
+    public function deleteSection(Clinic $clinic, Site $site, Page $page, string $sectionId)
+    {
+        $generation = $page->currentGeneration;
+        if (!$generation) {
+            return redirect()->back()->with('error', '世代がありません');
+        }
+
+        $sections = collect($generation->sections ?? [])->reject(fn($s) => $s['section_id'] === $sectionId)->values()->toArray();
+        foreach ($sections as $i => &$s) { $s['order'] = $i + 1; }
+        unset($s);
+
+        $generation->update([
+            'sections' => $sections,
+            'final_html' => app(\App\Services\Web\SectionParseService::class)->buildFinalHtml($sections),
+        ]);
+
+        return redirect()->route('clinic.sites.pages.show', [$clinic, $site, $page])->with('success', 'セクションを削除しました');
+    }
+
+    /**
+     * セクション並び替え
+     */
+    public function reorderSections(Request $request, Clinic $clinic, Site $site, Page $page)
+    {
+        $request->validate(['order' => 'required|array']);
+
+        $generation = $page->currentGeneration;
+        if (!$generation) {
+            return response()->json(['error' => '世代がありません'], 400);
+        }
+
+        $sectionsMap = collect($generation->sections ?? [])->keyBy('section_id');
+        $newSections = [];
+        foreach ($request->input('order') as $i => $sectionId) {
+            if ($sectionsMap->has($sectionId)) {
+                $s = $sectionsMap[$sectionId];
+                $s['order'] = $i + 1;
+                $newSections[] = $s;
+            }
+        }
+
+        $generation->update([
+            'sections' => $newSections,
+            'final_html' => app(\App\Services\Web\SectionParseService::class)->buildFinalHtml($newSections),
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
     // ─── 微細編集（v2互換） ───
 
     public function editContent(Clinic $clinic, Site $site, Page $page)

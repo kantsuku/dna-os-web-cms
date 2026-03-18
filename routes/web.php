@@ -85,6 +85,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/sites/{site}/pages/{page}/sections/{sectionId}/edit', [PageController::class, 'editSection'])->name('sites.pages.sections.edit');
         Route::put('/sites/{site}/pages/{page}/sections/{sectionId}', [PageController::class, 'updateSection'])->name('sites.pages.sections.update');
         Route::post('/sites/{site}/pages/{page}/sections/{sectionId}/lock', [PageController::class, 'toggleLock'])->name('sites.pages.sections.lock');
+        Route::post('/sites/{site}/pages/{page}/sections/add', [PageController::class, 'addSection'])->name('sites.pages.sections.add');
+        Route::delete('/sites/{site}/pages/{page}/sections/{sectionId}', [PageController::class, 'deleteSection'])->name('sites.pages.sections.delete');
+        Route::post('/sites/{site}/pages/{page}/sections/reorder', [PageController::class, 'reorderSections'])->name('sites.pages.sections.reorder');
 
         // 微細編集（v2互換）
         Route::get('/sites/{site}/pages/{page}/edit-content', [PageController::class, 'editContent'])->name('sites.pages.edit-content');
@@ -116,6 +119,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/design/tokens', [DesignController::class, 'updateTokens'])->name('design.tokens.update');
         Route::get('/design/components', [DesignController::class, 'components'])->name('design.components');
         Route::get('/design/components/{component}', [DesignController::class, 'componentShow'])->name('design.components.show');
+        Route::get('/design/components/{component}/preview-frame', [DesignController::class, 'componentPreviewFrame'])->name('design.components.preview-frame');
         Route::get('/design/components/{component}/edit', [DesignController::class, 'componentEdit'])->name('design.components.edit');
         Route::put('/design/components/{component}', [DesignController::class, 'componentUpdate'])->name('design.components.update');
         Route::get('/sites/{site}/design', [DesignController::class, 'siteDesign'])->name('design.site');
