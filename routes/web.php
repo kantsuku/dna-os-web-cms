@@ -22,6 +22,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/', fn () => redirect('/clinics'));
 
+// プレビュー系（iframe埋め込み用、auth不要）
+Route::prefix('clinics/{clinic}')->middleware(\App\Http\Middleware\InjectClinic::class)->group(function () {
+    Route::get('/sites/{site}/pages/{page}/content-frame', [PageController::class, 'contentFrame'])->name('public.content-frame');
+    Route::get('/sites/{site}/pages/{page}/section-frame/{sectionId}', [PageController::class, 'sectionFrame'])->name('public.section-frame');
+    Route::get('/design/components/{component}/preview-frame', [DesignController::class, 'componentPreviewFrame'])->name('public.component-preview');
+});
+
 // 認証必須
 Route::middleware('auth')->group(function () {
 

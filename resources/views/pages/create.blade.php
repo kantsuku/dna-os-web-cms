@@ -6,7 +6,7 @@
 </div>
 <h1 class="text-2xl font-bold mb-6">ページ作成</h1>
 
-<div class="max-w-2xl" x-data="{ pageType: '{{ old('page_type', 'lower') }}' }">
+<div class="max-w-2xl" x-data="pageCreateForm()">
     <form method="POST" action="{{ route('clinic.sites.pages.store', [$clinic, $site]) }}" class="space-y-6">
         @csrf
 
@@ -36,7 +36,7 @@
         <div class="bg-white rounded-lg shadow p-5 space-y-5">
             <div>
                 <label class="block text-sm font-semibold text-gray-900 mb-1">ページ名 <span class="text-red-500">*</span></label>
-                <input type="text" name="title" required value="{{ old('title') }}"
+                <input type="text" name="title" required value="{{ old('title') }}" x-model="title" @input="autoSlug()"
                        class="w-full border border-gray-300 rounded-lg text-sm px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                        placeholder="例：インプラント治療、医院紹介、スタッフ紹介">
                 @error('title')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
@@ -46,9 +46,9 @@
                 <label class="block text-sm font-semibold text-gray-900 mb-1">URL <span class="text-red-500">*</span></label>
                 <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500">
                     <span class="px-3 py-3 text-sm text-gray-400 bg-gray-50 border-r border-gray-300 whitespace-nowrap">{{ $site->domain ?? 'example.com' }}/</span>
-                    <input type="text" name="slug" required value="{{ old('slug') }}"
+                    <input type="text" name="slug" required value="{{ old('slug') }}" x-model="slug"
                            class="flex-1 border-0 text-sm px-3 py-3 focus:ring-0"
-                           placeholder="implant">
+                           placeholder="自動生成されます">
                 </div>
                 @error('slug')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
@@ -80,4 +80,34 @@
         </div>
     </form>
 </div>
+<script>
+function pageCreateForm() {
+    return {
+        pageType: '{{ old('page_type', 'lower') }}',
+        title: '{{ old('title', '') }}',
+        slug: '{{ old('slug', '') }}',
+        slugManual: false,
+        autoSlug() {
+            if (this.slugManual) return;
+            // ローマ字変換の簡易マッピング
+            const map = {
+                'インプラント':'implant','虫歯':'mushiba','歯周病':'shishubyou','予防':'yobou',
+                '矯正':'kyousei','審美':'shinbi','ホワイトニング':'whitening','小児':'shoni',
+                '根管':'konkan','親知らず':'oyashirazu','入れ歯':'ireba','口腔':'koukou',
+                '医院紹介':'about','スタッフ':'staff','設備':'facility','採用':'recruit',
+                'アクセス':'access','お問い合わせ':'contact','ブログ':'blog','お知らせ':'news',
+                '症例':'case','料金':'price','初診':'first-visit',
+                '治療':'treatment','歯科':'dental','歯':'tooth',
+            };
+            let s = this.title.trim();
+            for (const [jp, en] of Object.entries(map)) {
+                s = s.replace(new RegExp(jp, 'g'), en);
+            }
+            s = s.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').toLowerCase();
+            if (!s) s = '';
+            this.slug = s;
+        }
+    }
+}
+</script>
 @endsection

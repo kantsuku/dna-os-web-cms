@@ -41,6 +41,9 @@ class Site extends Model
             'specialty' => '専門サイト',
             'recruitment' => '採用サイト',
             'lp' => 'LP',
+            'gbp' => 'Googleビジネスプロフィール',
+            'instagram' => 'Instagram',
+            'blog_media' => 'ブログ / メディア',
             default => 'その他',
         };
     }

@@ -37,7 +37,7 @@
 
             {{-- プレビュー（iframe + com-CSS適用） --}}
             <div class="border-b">
-                <iframe src="{{ route('clinic.design.components.preview-frame', [$clinic, $component]) }}"
+                <iframe src="{{ route('public.component-preview', [$clinic, $component]) }}"
                         class="w-full border-0"
                         style="height: 120px;"
                         onload="this.style.height = Math.min(200, Math.max(80, this.contentDocument.documentElement.scrollHeight)) + 'px'"

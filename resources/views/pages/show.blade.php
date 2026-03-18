@@ -45,6 +45,33 @@
                         @endif
                         <a href="{{ route('clinic.sites.pages.sections.edit', [$clinic, $site, $page, $sid]) }}"
                            class="bg-indigo-600 text-white px-3 py-1 rounded text-xs hover:bg-indigo-700 shadow-sm">編集</a>
+                        {{-- 上下移動 --}}
+                        @if(!$loop->first)
+                            <form method="POST" action="{{ route('clinic.sites.pages.sections.reorder', [$clinic, $site, $page]) }}" class="inline">
+                                @csrf
+                                @php
+                                    $currentOrder = collect($gen->sections)->pluck('section_id')->toArray();
+                                    $idx = array_search($sid, $currentOrder);
+                                    $swapped = $currentOrder;
+                                    if ($idx > 0) { [$swapped[$idx-1], $swapped[$idx]] = [$swapped[$idx], $swapped[$idx-1]]; }
+                                @endphp
+                                @foreach($swapped as $o) <input type="hidden" name="order[]" value="{{ $o }}"> @endforeach
+                                <button class="bg-gray-100 text-gray-600 w-6 h-6 rounded text-xs hover:bg-gray-200 shadow-sm flex items-center justify-center" title="上へ">↑</button>
+                            </form>
+                        @endif
+                        @if(!$loop->last)
+                            <form method="POST" action="{{ route('clinic.sites.pages.sections.reorder', [$clinic, $site, $page]) }}" class="inline">
+                                @csrf
+                                @php
+                                    $currentOrder = collect($gen->sections)->pluck('section_id')->toArray();
+                                    $idx = array_search($sid, $currentOrder);
+                                    $swapped = $currentOrder;
+                                    if ($idx < count($swapped)-1) { [$swapped[$idx], $swapped[$idx+1]] = [$swapped[$idx+1], $swapped[$idx]]; }
+                                @endphp
+                                @foreach($swapped as $o) <input type="hidden" name="order[]" value="{{ $o }}"> @endforeach
+                                <button class="bg-gray-100 text-gray-600 w-6 h-6 rounded text-xs hover:bg-gray-200 shadow-sm flex items-center justify-center" title="下へ">↓</button>
+                            </form>
+                        @endif
                         <form method="POST" action="{{ route('clinic.sites.pages.sections.delete', [$clinic, $site, $page, $sid]) }}" class="inline"
                               onsubmit="return confirm('このセクションを削除しますか？')">
                             @csrf @method('DELETE')
@@ -61,7 +88,7 @@
                     </div>
 
                     {{-- コンテンツ（iframe src方式 = CSS確実適用） --}}
-                    <iframe src="{{ route('clinic.sites.pages.section-frame', [$clinic, $site, $page, $sid]) }}"
+                    <iframe src="{{ route('public.section-frame', [$clinic, $site, $page, $sid]) }}"
                             class="w-full border-0"
                             style="min-height: 120px;"
                             onload="this.style.height = this.contentDocument.documentElement.scrollHeight + 'px'"
@@ -95,7 +122,7 @@
                 <a href="{{ route('clinic.sites.pages.edit-content', [$clinic, $site, $page]) }}"
                    class="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700">編集</a>
             </div>
-            <iframe src="{{ route('clinic.sites.pages.content-frame', [$clinic, $site, $page]) }}"
+            <iframe src="{{ route('public.content-frame', [$clinic, $site, $page]) }}"
                     class="w-full border-0"
                     style="min-height: 300px;"
                     onload="this.style.height = this.contentDocument.documentElement.scrollHeight + 'px'"

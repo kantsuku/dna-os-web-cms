@@ -284,7 +284,10 @@ class PageController extends Controller
             'final_html' => app(\App\Services\Web\SectionParseService::class)->buildFinalHtml($newSections),
         ]);
 
-        return response()->json(['ok' => true]);
+        if (request()->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+        return redirect()->route('clinic.sites.pages.show', [$clinic, $site, $page])->with('success', 'セクション順序を変更しました');
     }
 
     // ─── 微細編集（v2互換） ───

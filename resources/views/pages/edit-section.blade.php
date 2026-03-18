@@ -31,7 +31,7 @@
     {{-- ビジュアルモード: iframe内でcontenteditable --}}
     <div x-show="mode === 'visual'" class="bg-white rounded-lg shadow overflow-hidden">
         <iframe id="visual-frame"
-                src="{{ route('clinic.sites.pages.section-frame', [$clinic, $site, $page, $sectionId, 'editable' => 1]) }}"
+                src="{{ route('public.section-frame', [$clinic, $site, $page, $sectionId, 'editable' => 1]) }}"
                 class="w-full border-0"
                 style="min-height: 400px;"
                 onload="this.style.height = Math.max(400, this.contentDocument.documentElement.scrollHeight) + 'px'"
