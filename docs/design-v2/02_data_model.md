@@ -78,6 +78,7 @@ DesignSystem (グローバル)
 | page_id | FK → pages | |
 | generation | INT | 世代番号（1, 2, 3...） |
 | source | ENUM(ai_generated, manual, imported) | 生成元 |
+| source_url | VARCHAR(500) | 取り込み元のGoogle Docs/Drive URL（トレーサビリティ） |
 | content_html | LONGTEXT | コンポーネントHTML（AI出力そのまま） |
 | content_text | LONGTEXT | プレーンテキスト版（検索・比較用） |
 | meta_json | JSON | 生成メタ情報（clinic_id, treatment_key, generated_at, model等） |

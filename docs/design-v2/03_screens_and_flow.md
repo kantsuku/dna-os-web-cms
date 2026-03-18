@@ -26,11 +26,12 @@
 | C4 | 微細編集 | 現在の世代に対するWYSIWYG編集。保存時に差分+理由を記録 |
 | C5 | プレビュー | デザインシステム適用済みの公開プレビュー |
 
-### D. 記事生成（ACMS → GAS連携）
+### D. コンテンツ取り込み
 
 | # | 画面名 | 概要 |
 |---|---|---|
-| D1 | 記事生成パネル | 対象ページ選択 → GASに生成リクエスト → 進捗表示 → 結果受け取り |
+| D1 | 原稿取り込み | Google Docs/Drive URL を指定 → 内容を取得・プレビュー → 「取り込み」で世代として保存 |
+| D2 | 取り込みプレビュー | 取得したHTMLのプレビュー。問題なければ取り込み確定 |
 
 ### E. 公開管理
 
@@ -66,71 +67,68 @@
 
 ## 主要操作フロー
 
-### フロー1: 新規ページ生成 → 公開
+### フロー1: 原稿取り込み → 微調整 → 公開
 
 ```
-管理者がACMSでページを作成（slug, title, treatment_key を設定）
-    │
-    ▼
-「記事生成」ボタンを押す → ACMS が GAS WebApp を呼び出し
-    │
-    ▼
-GAS が DNA-OS データを読み取り → Gemini → Claude → マークアップHTML を返す
-    │
-    ▼
-ACMS が受け取り → page_generations に世代1として保存
-    │ status: received
-    ▼
-管理者がプレビュー確認（デザインシステム適用済みの見た目）
-    │
-    ├── 問題なし → status: ready
-    │
-    └── 微修正が必要 → 微細編集画面(C4)で修正
+① 記事生成（ACMS外）
+   clinic-page-generator で記事を生成
+   → Google Docs に原稿 + _markup.txt が出力される
+   → 人間が内容を確認、必要ならDocs上で手直し
+                         │
+                         ▼
+② 原稿指定（ACMS）
+   管理者がACMSで対象ページを選択
+   → 原稿取り込み画面(D1) で Google Docs URL を貼り付け
+   → ACMS が Google Docs/Drive API で内容を取得
+   → 取り込みプレビュー(D2) で確認
+   → 「取り込み」ボタン
+                         │
+                         ▼
+③ 世代として保存
+   page_generations に新世代として保存
+   source_url にDocs URLを記録（トレーサビリティ）
+   status: received
+                         │
+                         ▼
+④ 微調整（任意）
+   プレビュー(C5) でデザイン適用後の見た目を確認
+   │
+   ├── 問題なし → status: ready
+   │
+   └── 微修正が必要 → 微細編集画面(C4)で修正
                          │
                          ▼
                     human_patch + patch_reason を記録
                     final_html を更新
+                    status: ready
                          │
                          ▼
-                    status: ready
-    │
-    ▼
-公開確認画面(E1) → 「公開」ボタン
-    │
-    ▼
-ビルドエンジン: final_html + デザインシステムCSS → 完成HTML
-    │
-    ▼
-FTPデプロイ → XServer
-    │
-    ▼
-status: published
-deploy_records に記録
+⑤ 公開
+   公開確認画面(E1) → 「公開」ボタン
+   → ビルドエンジン: final_html + デザインCSS → 完成HTML
+   → FTPデプロイ → XServer
+   → status: published, deploy_records に記録
 ```
 
-### フロー2: コンテンツ更新（再生成）
+### フロー2: コンテンツ更新（再取り込み）
 
 ```
-DNA-OSの原本が更新される（or 管理者が再生成を判断）
-    │
-    ▼
-「記事生成」ボタンを再度押す
-    │
-    ▼
-GAS が最新DNA-OSデータで再生成 → 新しいHTML
-    │
-    ▼
-ACMS が受け取り → page_generations に世代2として保存
-旧世代(1)は superseded に
-    │
-    ▼
+DNA-OSの原本が更新 → clinic-page-generator で再生成
+   → 新しい原稿がGoogle Docsに出力される
+                         │
+                         ▼
+管理者がACMSで同じページに新しいDocs URLを指定
+   → 新世代として取り込み
+   → 旧世代は superseded に
+                         │
+                         ▼
 管理者がプレビューで確認
-    │
-    ├── 前の世代のhuman_patchを参照可能
-    │    （「前回はここを修正しましたが、新しい世代にも適用しますか？」）
-    │
-    ▼
-公開 → 世代2がpublishedに
+   │
+   ├── 前の世代のhuman_patchを参照可能
+   │    （「前回はここを修正しましたが、新しい世代にも適用しますか？」）
+   │
+   ▼
+微調整 → 公開（フロー1の④⑤と同じ）
 ```
 
 ### フロー3: ロールバック

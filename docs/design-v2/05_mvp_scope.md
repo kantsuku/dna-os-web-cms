@@ -11,12 +11,13 @@
 - [ ] users + 認証（admin / editor の2ロール）
 - [ ] 基本レイアウト（Tailwind CDN + Alpine.js）
 
-## Phase 2: 記事生成連携（3〜4週目）
+## Phase 2: コンテンツ取り込み（3〜4週目）
 
-- [ ] GAS WebApp 呼び出しサービス（ACMS → clinic-page-generator）
-- [ ] 記事生成パネルUI（D1）
-- [ ] page_generations への保存（世代管理）
+- [ ] Google Docs取得サービス（URLからHTML取得）
+- [ ] 原稿取り込みUI（D1）— URL貼り付け → プレビュー → 取り込み
+- [ ] page_generations への保存（世代管理 + source_url記録）
 - [ ] 世代比較画面（C3）— diff表示
+- [ ] 微細編集画面（C4）— HTMLソース編集 + 差分・理由記録
 
 ## Phase 3: デザインシステム基盤（5〜6週目）
 
@@ -38,7 +39,7 @@
 
 | 機能 | 理由 |
 |---|---|
-| 微細編集WYSIWYG（C4） | MVPはHTMLソース直接編集で代用 |
+| 微細編集WYSIWYG（C4） | MVPはHTMLソース直接編集（WYSIWYG化はPhase 5以降） |
 | コンポーネントスタイル調整GUI（F3） | MVPはJSON直接編集で代用 |
 | TOPレイアウトエディタ（F5） | MVPはテンプレートファイルで固定 |
 | 例外コンテンツ AIブラッシュアップ | MVPは手動入力のみ |
@@ -47,11 +48,12 @@
 
 ## MVP成功基準
 
-1. ACMSのUIから「記事生成」ボタンでGASを呼び出し、HTMLが返ってくる
-2. 返ってきたHTMLがpage_generationsに保存される
+1. Google Docs URLを指定してコンテンツHTMLを取り込める
+2. 取り込んだHTMLに対して微細編集ができ、差分と理由が記録される
 3. デザイントークンを変更するとプレビューに反映される
 4. 「公開」ボタンでXServerにFTPデプロイされ、公開サイトが表示される
 5. 「ロールバック」で前の状態に戻せる
+6. 取り込み元URLが記録され、どの原稿から来たかトレースできる
 
 ## 技術スタック（v2）
 
