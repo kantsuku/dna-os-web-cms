@@ -33,11 +33,13 @@ class PageController extends Controller
             'template_key' => ['nullable', 'string', 'max:100'],
             'treatment_key' => ['nullable', 'string', 'max:100'],
             'dna_source_key' => ['nullable', 'string', 'max:100'],
+            'parent_id' => ['nullable', 'exists:pages,id'],
             'sort_order' => ['nullable', 'integer'],
         ]);
 
         $validated['content_classification'] = Page::classifyByPageType($validated['page_type']);
         $validated['template_key'] = $validated['template_key'] ?? 'generic';
+        $validated['sort_order'] = $validated['sort_order'] ?? ($site->pages()->max('sort_order') + 1);
 
         $page = $site->pages()->create($validated);
         return redirect()->route('clinic.sites.pages.show', [$clinic, $site, $page])->with('success', 'ページを作成しました');
@@ -45,7 +47,12 @@ class PageController extends Controller
 
     public function show(Clinic $clinic, Site $site, Page $page)
     {
-        $page->load(['generations' => fn ($q) => $q->orderByDesc('generation')->limit(10), 'currentGeneration']);
+        $page->load([
+            'generations' => fn ($q) => $q->orderByDesc('generation')->limit(10),
+            'currentGeneration',
+            'children.currentGeneration',
+            'parent',
+        ]);
         $sections = $page->currentGeneration?->sections ?? [];
         return view('pages.show', compact('site', 'page', 'sections'));
     }
@@ -65,6 +72,7 @@ class PageController extends Controller
             'treatment_key' => ['nullable', 'string', 'max:100'],
             'dna_source_key' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['nullable', 'integer'],
+            'parent_id' => ['nullable', 'exists:pages,id'],
             'status' => ['nullable', 'in:draft,ready,published,archived'],
             'meta' => ['nullable', 'array'],
         ]);

@@ -29,59 +29,27 @@
                     </div>
                 @else
                     @php
-                        // ページをタイプ別にグループ化してツリー構造にする
-                        $topPages = $site->pages->where('page_type', 'top');
-                        $lowerPages = $site->pages->where('page_type', 'lower');
-                        $blogPages = $site->pages->where('page_type', 'blog');
-                        $newsPages = $site->pages->where('page_type', 'news');
-                        $casePages = $site->pages->whereIn('page_type', ['case', 'exception']);
+                        $rootPages = $site->pages->whereNull('parent_id')->sortBy('sort_order');
+                        $childMap = $site->pages->whereNotNull('parent_id')->groupBy('parent_id');
+                        $iconMap = ['top' => 'home', 'lower' => 'page', 'blog' => 'blog', 'news' => 'news', 'case' => 'case', 'exception' => 'case'];
                     @endphp
 
-                    <div class="space-y-1">
-                        {{-- TOPページ --}}
-                        @foreach($topPages as $page)
-                            @include('sites._sitemap_node', ['page' => $page, 'depth' => 0, 'icon' => 'home'])
+                    <div class="space-y-0.5">
+                        @foreach($rootPages as $page)
+                            @include('sites._sitemap_node', ['page' => $page, 'depth' => 0, 'icon' => $iconMap[$page->page_type] ?? 'page'])
+                            {{-- 子ページ --}}
+                            @if($childMap->has($page->id))
+                                @foreach($childMap[$page->id]->sortBy('sort_order') as $child)
+                                    @include('sites._sitemap_node', ['page' => $child, 'depth' => 1, 'icon' => $iconMap[$child->page_type] ?? 'page'])
+                                    {{-- 孫ページ --}}
+                                    @if($childMap->has($child->id))
+                                        @foreach($childMap[$child->id]->sortBy('sort_order') as $grandchild)
+                                            @include('sites._sitemap_node', ['page' => $grandchild, 'depth' => 2, 'icon' => $iconMap[$grandchild->page_type] ?? 'page'])
+                                        @endforeach
+                                    @endif
+                                @endforeach
+                            @endif
                         @endforeach
-
-                        {{-- 診療・下層ページ --}}
-                        @if($lowerPages->isNotEmpty())
-                            <div class="pt-2">
-                                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide pl-2 mb-1">診療・下層ページ</div>
-                                @foreach($lowerPages as $page)
-                                    @include('sites._sitemap_node', ['page' => $page, 'depth' => 1, 'icon' => 'page'])
-                                @endforeach
-                            </div>
-                        @endif
-
-                        {{-- ブログ --}}
-                        @if($blogPages->isNotEmpty())
-                            <div class="pt-2">
-                                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide pl-2 mb-1">ブログ</div>
-                                @foreach($blogPages as $page)
-                                    @include('sites._sitemap_node', ['page' => $page, 'depth' => 1, 'icon' => 'blog'])
-                                @endforeach
-                            </div>
-                        @endif
-
-                        {{-- お知らせ --}}
-                        @if($newsPages->isNotEmpty())
-                            <div class="pt-2">
-                                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide pl-2 mb-1">お知らせ</div>
-                                @foreach($newsPages as $page)
-                                    @include('sites._sitemap_node', ['page' => $page, 'depth' => 1, 'icon' => 'news'])
-                                @endforeach
-                            </div>
-                        @endif
-
-                        {{-- 症例 --}}
-                        @if($casePages->isNotEmpty())
-                            <div class="pt-2">
-                                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide pl-2 mb-1">症例・例外</div>
-                                @foreach($casePages as $page)
-                                    @include('sites._sitemap_node', ['page' => $page, 'depth' => 1, 'icon' => 'case'])
-                                @endforeach
-                            </div>
-                        @endif
                     </div>
                 @endif
             </div>

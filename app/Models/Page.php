@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Page extends Model
 {
     protected $fillable = [
-        'site_id', 'slug', 'title', 'page_type',
+        'site_id', 'parent_id', 'slug', 'title', 'page_type',
         'content_classification', 'template_key', 'meta', 'dna_source_key',
         'treatment_key', 'sort_order', 'current_generation_id',
         'is_published', 'status',
@@ -28,6 +28,16 @@ class Page extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Page::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Page::class, 'parent_id')->orderBy('sort_order');
     }
 
     public function generations(): HasMany
