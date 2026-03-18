@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Strategy;
 use App\Http\Controllers\Controller;
 use App\Models\FreeInputRequest;
 use App\Models\Site;
+use App\Services\Strategy\AiInterpretationService;
+use App\Services\Strategy\TaskGenerationService;
 use Illuminate\Http\Request;
 
 class FreeInputController extends Controller
@@ -20,7 +22,7 @@ class FreeInputController extends Controller
         return view('strategy.free-input.index', compact('requests', 'sites'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AiInterpretationService $aiService)
     {
         $validated = $request->validate([
             'site_id' => 'required|exists:sites,id',
@@ -37,27 +39,59 @@ class FreeInputController extends Controller
             'submitted_by' => auth()->id(),
         ]);
 
-        // AI解釈はPhase 3で実装。現時点ではpendingのまま保存
+        // AI解釈を実行
+        $aiService->interpretAndSave($freeInput);
+
         return redirect()->route('strategy.free-input.show', $freeInput)
-            ->with('success', '修正依頼を送信しました');
+            ->with('success', '修正依頼を送信し、AI解釈を実行しました');
     }
 
     public function show(FreeInputRequest $freeInputRequest)
     {
-        $freeInputRequest->load(['site', 'submitter', 'strategicTask']);
+        $freeInputRequest->load(['site', 'submitter', 'strategicTask.channelTasks']);
 
         return view('strategy.free-input.show', compact('freeInputRequest'));
     }
 
-    public function confirm(FreeInputRequest $freeInputRequest)
+    public function confirm(FreeInputRequest $freeInputRequest, TaskGenerationService $taskService)
     {
         if ($freeInputRequest->interpretation_status !== 'interpreted') {
             return redirect()->back()->with('error', 'AI解釈がまだ完了していません');
         }
 
-        $freeInputRequest->update(['interpretation_status' => 'confirmed']);
+        $site = $freeInputRequest->site;
+        $interp = $freeInputRequest->ai_interpretation ?? [];
 
-        // タスク生成はPhase 3で実装
-        return redirect()->back()->with('success', '解釈を確認しました');
+        // 対象ページを特定
+        $targetPageId = null;
+        if (!empty($interp['target_page_slug'])) {
+            $targetPage = $site->pages()->where('slug', $interp['target_page_slug'])->first();
+            $targetPageId = $targetPage?->id;
+        }
+
+        // タスク生成
+        $st = $taskService->generateFromFreeInput(
+            $site,
+            $interp['description'] ?? $freeInputRequest->raw_text,
+            $freeInputRequest->raw_text,
+            $targetPageId,
+            $interp['target_section'] ? [$interp['target_section']] : null,
+            $interp['task_type'] ?? 'update_content',
+        );
+
+        $freeInputRequest->update([
+            'interpretation_status' => 'confirmed',
+            'strategic_task_id' => $st->id,
+        ]);
+
+        return redirect()->route('strategy.tasks.show', $st)
+            ->with('success', '解釈を確認し、タスクを生成しました');
+    }
+
+    public function reject(FreeInputRequest $freeInputRequest)
+    {
+        $freeInputRequest->update(['interpretation_status' => 'rejected']);
+        return redirect()->route('strategy.free-input.index')
+            ->with('success', '修正依頼を却下しました');
     }
 }

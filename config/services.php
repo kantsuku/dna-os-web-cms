@@ -39,4 +39,8 @@ return [
         'webapp_url' => env('DNA_OS_WEBAPP_URL'),
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+    ],
+
 ];

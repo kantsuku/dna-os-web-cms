@@ -44,7 +44,10 @@ Route::middleware('auth')->group(function () {
 
         // DNA-OS更新差分
         Route::get('/dna-updates', [DnaOsUpdateController::class, 'index'])->name('dna-updates.index');
-        Route::get('/dna-updates/{log}', [DnaOsUpdateController::class, 'show'])->name('dna-updates.show');
+        Route::post('/dna-updates/sync', [DnaOsUpdateController::class, 'sync'])->name('dna-updates.sync');
+
+        // フリー入力の却下
+        Route::post('/free-input/{freeInputRequest}/reject', [FreeInputController::class, 'reject'])->name('free-input.reject');
 
         // チャネル実行状況
         Route::get('/channel-status', [ChannelStatusController::class, 'index'])->name('channel-status.index');
