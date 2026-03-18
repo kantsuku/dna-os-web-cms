@@ -78,7 +78,15 @@ class SiteBuildService
      */
     public function previewPage(Site $site, Page $page, ?string $html = null): string
     {
-        $contentHtml = $html ?? $page->currentGeneration?->final_html ?? '<p>コンテンツなし</p>';
+        $generation = $page->currentGeneration;
+        if ($html) {
+            $contentHtml = $html;
+        } elseif ($generation && $generation->hasSections()) {
+            $contentHtml = $generation->buildFinalHtml();
+        } else {
+            $contentHtml = $generation?->final_html ?? '<p>コンテンツなし</p>';
+        }
+
         $css = $this->cssService->generateCss($site);
 
         return $this->wrapInLayout($site, $page, $contentHtml, $css);
@@ -86,12 +94,17 @@ class SiteBuildService
 
     /**
      * コンテンツをページレイアウトで包む
+     * com-section が自身でレイアウトを持つため container で包まない
      */
     private function wrapInLayout(Site $site, Page $page, string $contentHtml, ?string $inlineCss = null): string
     {
         $cssLink = $inlineCss
             ? "<style>{$inlineCss}</style>"
             : '<link rel="stylesheet" href="/assets/css/style.css">';
+
+        $meta = $page->meta ?? [];
+        $description = $meta['description'] ?? '';
+        $ogImage = $meta['og_image'] ?? '';
 
         return <<<HTML
 <!DOCTYPE html>
@@ -100,26 +113,15 @@ class SiteBuildService
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{$page->title} | {$site->name}</title>
+    <meta name="description" content="{$description}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
     {$cssLink}
 </head>
 <body>
-    <header class="site-header">
-        <div class="container">
-            <a href="/" class="site-name">{$site->name}</a>
-        </div>
-    </header>
-
     <main>
-        <div class="container">
-            {$contentHtml}
-        </div>
+        {$contentHtml}
     </main>
-
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; {$site->name}</p>
-        </div>
-    </footer>
 
     <script src="/assets/js/main.js"></script>
 </body>

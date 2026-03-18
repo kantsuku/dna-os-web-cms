@@ -114,6 +114,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/design/tokens', [DesignController::class, 'updateTokens'])->name('design.tokens.update');
         Route::get('/design/components', [DesignController::class, 'components'])->name('design.components');
         Route::get('/design/components/{component}', [DesignController::class, 'componentShow'])->name('design.components.show');
+        Route::get('/design/components/{component}/edit', [DesignController::class, 'componentEdit'])->name('design.components.edit');
+        Route::put('/design/components/{component}', [DesignController::class, 'componentUpdate'])->name('design.components.update');
         Route::get('/sites/{site}/design', [DesignController::class, 'siteDesign'])->name('design.site');
         Route::put('/sites/{site}/design', [DesignController::class, 'updateSiteDesign'])->name('design.site.update');
         Route::get('/sites/{site}/design/css', [DesignController::class, 'previewCss'])->name('design.site.css');

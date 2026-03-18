@@ -96,6 +96,9 @@ class ContentImportService
             'page_generation_id' => $generation->id,
         ]);
 
+        // current_generation_id を最新世代に自動更新
+        $page->update(['current_generation_id' => $generation->id]);
+
         if (!empty($skipped)) {
             Log::info('セクションスキップ発生', [
                 'page_id' => $page->id,

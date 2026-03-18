@@ -61,14 +61,20 @@
                     <p class="text-xs text-gray-500 mb-2">{{ $component->description }}</p>
                 @endif
 
-                @if($component->html_template)
-                    <button @click="showCode = !showCode" class="text-xs text-indigo-600 hover:text-indigo-800">
-                        <span x-text="showCode ? 'HTMLを閉じる' : 'HTMLを見る'"></span>
-                    </button>
-                    <div x-show="showCode" style="display:none" class="mt-2">
+                <div class="flex items-center space-x-3">
+                    <a href="{{ route('clinic.design.components.edit', [$clinic, $component]) }}"
+                       class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">編集</a>
+                    @if($component->html_template)
+                        <button @click="showCode = !showCode" class="text-xs text-gray-500 hover:text-gray-700">
+                            <span x-text="showCode ? 'HTMLを閉じる' : 'HTMLを見る'"></span>
+                        </button>
+                    @endif
+                </div>
+                <div x-show="showCode" style="display:none" class="mt-2">
+                    @if($component->html_template)
                         <pre class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-48"><code>{{ $component->html_template }}</code></pre>
-                    </div>
-                @endif
+                    @endif
+                </div>
             </div>
         </div>
         @endforeach
