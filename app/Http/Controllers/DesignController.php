@@ -74,7 +74,8 @@ HTML);
             'description' => 'nullable|string',
             'html_template' => 'nullable|string',
             'preview_html' => 'nullable|string',
-            'variants' => 'nullable|string', // カンマ区切り
+            'custom_css' => 'nullable|string',
+            'variants' => 'nullable|string',
         ]);
 
         $variants = $validated['variants']
@@ -86,6 +87,7 @@ HTML);
             'description' => $validated['description'],
             'html_template' => $validated['html_template'],
             'preview_html' => $validated['preview_html'],
+            'custom_css' => $validated['custom_css'],
             'variants' => $variants,
         ]);
 

@@ -13,6 +13,8 @@ use App\Http\Controllers\Strategy\DnaOsUpdateController;
 use App\Http\Controllers\Strategy\ChannelStatusController;
 use App\Http\Controllers\Shared\ApprovalController;
 use App\Http\Controllers\Web\ExceptionContentController;
+use App\Http\Controllers\Web\MediaController;
+use App\Http\Controllers\Web\SitePartsController;
 use Illuminate\Support\Facades\Route;
 
 // 認証
@@ -27,6 +29,7 @@ Route::prefix('clinics/{clinic}')->middleware(\App\Http\Middleware\InjectClinic:
     Route::get('/sites/{site}/pages/{page}/content-frame', [PageController::class, 'contentFrame'])->name('public.content-frame');
     Route::get('/sites/{site}/pages/{page}/section-frame/{sectionId}', [PageController::class, 'sectionFrame'])->name('public.section-frame');
     Route::get('/design/components/{component}/preview-frame', [DesignController::class, 'componentPreviewFrame'])->name('public.component-preview');
+    Route::get('/sites/{site}/parts/preview-header', [SitePartsController::class, 'previewHeader'])->name('clinic.sites.parts.preview-header');
 });
 
 // 認証必須
@@ -102,6 +105,17 @@ Route::middleware('auth')->group(function () {
         // 世代管理
         Route::post('/sites/{site}/pages/{page}/generations/{generation}/ready', [PageController::class, 'markReady'])->name('sites.pages.generations.ready');
         Route::get('/sites/{site}/pages/{page}/compare', [PageController::class, 'compareGenerations'])->name('sites.pages.compare');
+
+        // ── 共通パーツ (PARTS) ──
+        Route::get('/sites/{site}/parts', [SitePartsController::class, 'edit'])->name('sites.parts.edit');
+        Route::put('/sites/{site}/parts', [SitePartsController::class, 'update'])->name('sites.parts.update');
+
+        // ── メディア管理 (MEDIA) ──
+        Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+        Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
+        Route::post('/media/folder', [MediaController::class, 'createFolder'])->name('media.folder');
+        Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+        Route::get('/media/picker', [MediaController::class, 'picker'])->name('media.picker');
 
         // ── 例外コンテンツ (EXC) ──
         Route::get('/sites/{site}/exceptions', [ExceptionContentController::class, 'index'])->name('sites.exceptions.index');

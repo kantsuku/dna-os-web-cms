@@ -15,13 +15,18 @@ class Site extends Model
         'name', 'domain',
         'xserver_host', 'xserver_ftp_user', 'xserver_ftp_pass', 'xserver_deploy_path',
         'gas_generator_url', 'design_id', 'status',
+        'header_config', 'footer_config',
     ];
 
     protected $hidden = ['xserver_ftp_pass'];
 
     protected function casts(): array
     {
-        return ['xserver_ftp_pass' => 'encrypted'];
+        return [
+            'xserver_ftp_pass' => 'encrypted',
+            'header_config' => 'array',
+            'footer_config' => 'array',
+        ];
     }
 
     public function clinic(): BelongsTo

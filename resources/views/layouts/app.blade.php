@@ -130,6 +130,8 @@
                          style="display:none">
                         <a href="{{ route('clinic.design.tokens', $clinic) }}" class="block px-4 py-2 text-sm hover:bg-indigo-50">トンマナ / トークン</a>
                         <a href="{{ route('clinic.design.components', $clinic) }}" class="block px-4 py-2 text-sm hover:bg-indigo-50">コンポーネント</a>
+                        <div class="border-t my-1"></div>
+                        <a href="{{ route('clinic.media.index', $clinic) }}" class="block px-4 py-2 text-sm hover:bg-indigo-50">メディアライブラリ</a>
                     </div>
                 </div>
             </div>
@@ -137,7 +139,7 @@
     </nav>
 
     {{-- コンテキストバー --}}
-    @if(isset($site) && request()->routeIs('clinic.sites.pages.*', 'clinic.sites.exceptions.*', 'clinic.sites.publish.*', 'clinic.sites.show', 'clinic.sites.edit'))
+    @if(isset($site) && request()->routeIs('clinic.sites.pages.*', 'clinic.sites.exceptions.*', 'clinic.sites.publish.*', 'clinic.sites.parts.*', 'clinic.sites.show', 'clinic.sites.edit'))
     <div class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center h-9 text-xs space-x-3">
@@ -150,6 +152,7 @@
                 <a href="{{ route('clinic.sites.show', [$clinic, $site]) }}" class="px-2 py-1 rounded {{ request()->routeIs('clinic.sites.show') ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700' }}">サイトマップ</a>
                 <a href="{{ route('clinic.sites.pages.index', [$clinic, $site]) }}" class="px-2 py-1 rounded {{ request()->routeIs('clinic.sites.pages.*') ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700' }}">ページ</a>
                 <a href="{{ route('clinic.sites.exceptions.index', [$clinic, $site]) }}" class="px-2 py-1 rounded {{ request()->routeIs('clinic.sites.exceptions.*') ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700' }}">例外</a>
+                <a href="{{ route('clinic.sites.parts.edit', [$clinic, $site]) }}" class="px-2 py-1 rounded {{ request()->routeIs('clinic.sites.parts.*') ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700' }}">共通パーツ</a>
                 <a href="{{ route('clinic.sites.publish.index', [$clinic, $site]) }}" class="px-2 py-1 rounded {{ request()->routeIs('clinic.sites.publish.*') ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-700' }}">公開</a>
                 <a href="{{ route('clinic.design.site', [$clinic, $site]) }}" class="px-2 py-1 rounded text-gray-500 hover:text-gray-700">デザイン</a>
             </div>
