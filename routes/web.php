@@ -30,6 +30,7 @@ Route::prefix('clinics/{clinic}')->middleware(\App\Http\Middleware\InjectClinic:
     Route::get('/sites/{site}/pages/{page}/section-frame/{sectionId}', [PageController::class, 'sectionFrame'])->name('public.section-frame');
     Route::get('/design/components/{component}/preview-frame', [DesignController::class, 'componentPreviewFrame'])->name('public.component-preview');
     Route::get('/sites/{site}/parts/preview-header', [SitePartsController::class, 'previewHeader'])->name('clinic.sites.parts.preview-header');
+    Route::get('/sites/{site}/parts/preview-footer', [SitePartsController::class, 'previewFooter'])->name('clinic.sites.parts.preview-footer');
 });
 
 // 認証必須

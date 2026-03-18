@@ -335,6 +335,7 @@ class PageController extends Controller
 
     /**
      * ページコンテンツをcom-CSS付きで返す（iframe埋め込み用）
+     * ?layout=1 でヘッダー/フッター付き
      */
     public function contentFrame(Clinic $clinic, Site $site, Page $page)
     {
@@ -345,8 +346,18 @@ class PageController extends Controller
 
         $contentHtml = $gen->hasSections() ? $gen->buildFinalHtml() : ($gen->final_html ?? $gen->content_html ?? '');
         $css = app(\App\Services\DesignCssService::class)->generateCss($site);
-
         $editable = request()->boolean('editable') ? 'contenteditable="true"' : '';
+
+        // layout=1 でヘッダー/フッター込みの完全プレビュー
+        $headerHtml = '';
+        $footerHtml = '';
+        $hamburgerJs = '';
+        if (request()->boolean('layout')) {
+            $buildService = app(\App\Services\SiteBuildService::class);
+            $headerHtml = $buildService->renderHeader($site);
+            $footerHtml = $buildService->renderFooter($site);
+            $hamburgerJs = '<script>' . $this->getHamburgerJs() . '</script>';
+        }
 
         return response(<<<HTML
 <!DOCTYPE html>
@@ -361,9 +372,33 @@ body { margin: 0; padding: 0; }
 [contenteditable]:focus { outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 4px; }
 </style>
 </head>
-<body {$editable}>{$contentHtml}</body>
+<body>
+{$headerHtml}
+<main {$editable}>{$contentHtml}</main>
+{$footerHtml}
+{$hamburgerJs}
+</body>
 </html>
 HTML);
+    }
+
+    private function getHamburgerJs(): string
+    {
+        return <<<'JS'
+(function(){
+    var btn = document.getElementById('js-hamburger');
+    var nav = document.getElementById('js-mobile-nav');
+    if (!btn || !nav) return;
+    btn.addEventListener('click', function() {
+        btn.classList.toggle('is-open');
+        nav.classList.toggle('is-open');
+        document.body.style.overflow = nav.classList.contains('is-open') ? 'hidden' : '';
+    });
+    nav.addEventListener('click', function(e) {
+        if (e.target === nav) { btn.classList.remove('is-open'); nav.classList.remove('is-open'); document.body.style.overflow = ''; }
+    });
+})();
+JS;
     }
 
     /**

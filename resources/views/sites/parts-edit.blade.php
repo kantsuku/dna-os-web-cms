@@ -69,6 +69,11 @@
             <div class="px-6 py-4 border-b bg-gray-50">
                 <h2 class="text-lg font-semibold">フッター</h2>
             </div>
+            {{-- フッタープレビュー --}}
+            <div class="border-b">
+                <iframe src="{{ route('clinic.sites.parts.preview-footer', [$clinic, $site]) }}"
+                        class="w-full border-0" style="height:200px;"></iframe>
+            </div>
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-1">医院名</label>

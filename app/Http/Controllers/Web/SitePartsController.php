@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Site;
+use App\Services\SiteBuildService;
 use Illuminate\Http\Request;
 
 class SitePartsController extends Controller
@@ -43,36 +44,36 @@ class SitePartsController extends Controller
     }
 
     /**
-     * ヘッダープレビュー（iframe用）
+     * ヘッダープレビュー（iframe用）— com-CSSクラスで描画
      */
-    public function previewHeader(Clinic $clinic, Site $site)
+    public function previewHeader(Clinic $clinic, Site $site, SiteBuildService $buildService)
     {
-        $config = $site->header_config ?? $this->defaultHeader();
         $css = app(\App\Services\DesignCssService::class)->generateCss($site);
-
-        $navHtml = '';
-        foreach ($config['nav_items'] ?? [] as $item) {
-            $navHtml .= '<a href="' . e($item['url'] ?? '#') . '" style="color:#333;text-decoration:none;font-size:14px;padding:0 12px;">' . e($item['label'] ?? '') . '</a>';
-        }
-
-        $logoText = e($config['logo_text'] ?? $site->name);
-        $phone = e($config['phone'] ?? '');
-        $ctaText = e($config['cta_text'] ?? '');
+        $headerHtml = $buildService->renderHeader($site);
 
         return response(<<<HTML
 <!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>{$css} body{margin:0;}</style></head>
-<body>
-<header style="background:#fff;border-bottom:1px solid #eee;padding:16px 40px;display:flex;justify-content:space-between;align-items:center;">
-    <div style="font-size:20px;font-weight:700;color:var(--color-main2, #2793EA);">{$logoText}</div>
-    <nav style="display:flex;align-items:center;">{$navHtml}</nav>
-    <div style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:18px;font-weight:500;color:var(--color-main2-dark, #0057a1);">{$phone}</span>
-        <a style="background:var(--color-main2);color:#fff;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">{$ctaText}</a>
-    </div>
-</header>
-</body></html>
+<body>{$headerHtml}</body></html>
+HTML);
+    }
+
+    /**
+     * フッタープレビュー（iframe用）
+     */
+    public function previewFooter(Clinic $clinic, Site $site, SiteBuildService $buildService)
+    {
+        $css = app(\App\Services\DesignCssService::class)->generateCss($site);
+        $footerHtml = $buildService->renderFooter($site);
+
+        return response(<<<HTML
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>{$css} body{margin:0;}</style></head>
+<body>{$footerHtml}</body></html>
 HTML);
     }
 

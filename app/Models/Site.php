@@ -72,4 +72,41 @@ class Site extends Model
     {
         return $this->belongsToMany(User::class);
     }
+
+    /**
+     * ナビゲーション項目を生成（手動設定優先、なければページから自動生成）
+     */
+    public function getNavItems(): array
+    {
+        $config = $this->header_config ?? [];
+        $manual = $config['nav_items'] ?? [];
+
+        // 手動設定があり、有効な項目が含まれていればそれを使う
+        $validManual = array_filter($manual, fn($item) => !empty($item['label']));
+        if (!empty($validManual)) {
+            return array_values($validManual);
+        }
+
+        // 手動設定がなければページ一覧から自動生成
+        return $this->generateNavFromPages();
+    }
+
+    /**
+     * ページ階層からナビゲーション項目を自動生成
+     * トップレベルの公開可能ページをsort_order順に取得
+     */
+    public function generateNavFromPages(): array
+    {
+        $pages = $this->pages()
+            ->whereNull('parent_id')
+            ->whereIn('status', ['ready', 'published'])
+            ->where('page_type', '!=', 'top')
+            ->orderBy('sort_order')
+            ->get(['title', 'slug']);
+
+        return $pages->map(fn($p) => [
+            'label' => $p->title,
+            'url' => '/' . ltrim($p->slug, '/'),
+        ])->toArray();
+    }
 }

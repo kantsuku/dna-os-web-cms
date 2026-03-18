@@ -211,3 +211,122 @@ ul, ol { list-style: none; }
 
 /* ============================================================ 画像 */
 .com-img { width: 100%; height: auto; border-radius: 10px; }
+
+/* ============================================================ ヘッダー */
+.com-header {
+  position: sticky; top: 0; z-index: 1000;
+  background: #fff; border-bottom: 1px solid #eee;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.com-header-inner {
+  display: flex; justify-content: space-between; align-items: center;
+  max-width: var(--content-width); margin: 0 auto;
+  padding: 12px 50px; gap: 20px;
+}
+@media (max-width: 834px) { .com-header-inner { padding: 10px 4%; } }
+
+.com-header-logo {
+  font-size: 2rem; font-weight: 700; color: var(--color-main2);
+  text-decoration: none; white-space: nowrap; line-height: 1.3;
+}
+.com-header-logo img { max-height: 44px; width: auto; border-radius: 0; }
+
+.com-header-nav { display: flex; align-items: center; gap: 0; }
+.com-header-nav a {
+  color: var(--color-gray-black); text-decoration: none;
+  font-size: 1.4rem; font-weight: 500; padding: 8px 14px;
+  transition: color 0.2s;
+}
+.com-header-nav a:hover { color: var(--color-main2); }
+@media (max-width: 834px) { .com-header-nav { display: none; } }
+
+.com-header-right { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.com-header-phone {
+  font-size: 1.8rem; font-weight: 600; color: var(--color-main2-dark);
+  text-decoration: none; letter-spacing: 0.05em;
+}
+@media (max-width: 834px) { .com-header-phone { font-size: 1.4rem; } }
+.com-header-cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--color-main2); color: #fff; border: none;
+  padding: 10px 24px; border-radius: 100vh; font-size: 1.3rem;
+  font-weight: 600; text-decoration: none; transition: opacity 0.3s;
+}
+.com-header-cta:hover { opacity: 0.8; color: #fff; }
+@media (max-width: 834px) { .com-header-cta { padding: 8px 16px; font-size: 1.2rem; } }
+
+/* ハンバーガーメニュー */
+.com-hamburger {
+  display: none; background: none; border: none; cursor: pointer;
+  width: 36px; height: 36px; position: relative; padding: 0;
+  flex-shrink: 0;
+}
+@media (max-width: 834px) { .com-hamburger { display: flex; align-items: center; justify-content: center; } }
+.com-hamburger span,
+.com-hamburger span::before,
+.com-hamburger span::after {
+  display: block; width: 22px; height: 2px;
+  background: var(--color-gray-black); border-radius: 2px;
+  transition: transform 0.3s, opacity 0.3s;
+  position: absolute;
+}
+.com-hamburger span::before { content: ""; top: -7px; }
+.com-hamburger span::after { content: ""; top: 7px; }
+.com-hamburger.is-open span { background: transparent; }
+.com-hamburger.is-open span::before { top: 0; transform: rotate(45deg); }
+.com-hamburger.is-open span::after { top: 0; transform: rotate(-45deg); }
+
+/* モバイルナビ（ドロワー） */
+.com-mobile-nav {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 999; background: rgba(0,0,0,0.5);
+  opacity: 0; transition: opacity 0.3s;
+}
+.com-mobile-nav.is-open { display: block; opacity: 1; }
+.com-mobile-nav-panel {
+  position: absolute; top: 0; right: 0; width: 280px; max-width: 80vw;
+  height: 100%; background: #fff; overflow-y: auto;
+  transform: translateX(100%); transition: transform 0.3s;
+  padding: 70px 0 30px;
+}
+.com-mobile-nav.is-open .com-mobile-nav-panel { transform: translateX(0); }
+.com-mobile-nav a {
+  display: block; padding: 14px 30px; color: var(--color-gray-black);
+  font-size: 1.5rem; font-weight: 500; text-decoration: none;
+  border-bottom: 1px solid #f0f0f0; transition: background 0.2s;
+}
+.com-mobile-nav a:hover { background: var(--color-gray-white); color: var(--color-main2); }
+.com-mobile-nav-cta {
+  display: block; margin: 20px 30px; text-align: center;
+  background: var(--color-main2); color: #fff !important; border-radius: 100vh;
+  padding: 12px !important; font-weight: 600 !important; border: none !important;
+}
+.com-mobile-nav-phone {
+  display: block; text-align: center; padding: 16px 30px !important;
+  font-size: 1.8rem !important; font-weight: 700 !important;
+  color: var(--color-main2-dark) !important; border: none !important;
+}
+
+/* ============================================================ フッター */
+.com-footer { background: var(--color-gray-black); color: #fff; padding: 50px 0 0; }
+@media (max-width: 834px) { .com-footer { padding: 40px 0 0; } }
+.com-footer-inner {
+  max-width: var(--content-width); margin: 0 auto; padding: 0 50px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+}
+@media (max-width: 834px) { .com-footer-inner { grid-template-columns: 1fr; padding: 0 4%; gap: 30px; } }
+.com-footer-info h3 { font-size: 1.8rem; font-weight: 700; margin-bottom: 16px; color: #fff; }
+.com-footer-info p { font-size: 1.4rem; line-height: 1.8; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
+.com-footer-nav { display: flex; flex-wrap: wrap; gap: 0; }
+.com-footer-nav a {
+  display: block; width: 50%; padding: 8px 0;
+  color: rgba(255,255,255,0.8); font-size: 1.3rem; text-decoration: none;
+  transition: color 0.2s;
+}
+.com-footer-nav a:hover { color: #fff; }
+@media (max-width: 834px) { .com-footer-nav a { width: 100%; } }
+.com-footer-bottom {
+  margin-top: 40px; padding: 16px 50px; border-top: 1px solid rgba(255,255,255,0.15);
+  text-align: center; font-size: 1.2rem; color: rgba(255,255,255,0.5);
+}
+@media (max-width: 834px) { .com-footer-bottom { padding: 14px 4%; margin-top: 30px; } }

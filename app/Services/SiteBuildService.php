@@ -103,8 +103,11 @@ class SiteBuildService
             : '<link rel="stylesheet" href="/assets/css/style.css">';
 
         $meta = $page->meta ?? [];
-        $description = $meta['description'] ?? '';
-        $ogImage = $meta['og_image'] ?? '';
+        $description = e($meta['description'] ?? '');
+
+        $headerHtml = $this->renderHeader($site);
+        $footerHtml = $this->renderFooter($site);
+        $hamburgerJs = $this->getHamburgerJs();
 
         return <<<HTML
 <!DOCTYPE html>
@@ -119,14 +122,168 @@ class SiteBuildService
     {$cssLink}
 </head>
 <body>
+    {$headerHtml}
+
     <main>
         {$contentHtml}
     </main>
 
+    {$footerHtml}
+
     <script src="/assets/js/main.js"></script>
+    <script>{$hamburgerJs}</script>
 </body>
 </html>
 HTML;
+    }
+
+    /**
+     * ヘッダーHTMLを生成（com-CSSクラス使用）
+     */
+    public function renderHeader(Site $site): string
+    {
+        $config = $site->header_config ?? [];
+        $navItems = $site->getNavItems();
+
+        $logoText = e($config['logo_text'] ?? $site->name);
+        $logoImage = $config['logo_image'] ?? '';
+        $phone = e($config['phone'] ?? '');
+        $ctaText = e($config['cta_text'] ?? 'ご予約・お問い合わせ');
+        $ctaUrl = e($config['cta_url'] ?? '/contact');
+
+        // ロゴ: 画像があれば画像、なければテキスト
+        $logoHtml = $logoImage
+            ? '<img src="' . e($logoImage) . '" alt="' . $logoText . '">'
+            : $logoText;
+
+        // デスクトップナビ
+        $navHtml = '';
+        foreach ($navItems as $item) {
+            $navHtml .= '<a href="' . e($item['url'] ?? '#') . '">' . e($item['label'] ?? '') . '</a>';
+        }
+
+        // モバイルナビ（ドロワー）
+        $mobileNavHtml = '';
+        foreach ($navItems as $item) {
+            $mobileNavHtml .= '<a href="' . e($item['url'] ?? '#') . '">' . e($item['label'] ?? '') . '</a>';
+        }
+        if ($phone) {
+            $mobileNavHtml .= '<a href="tel:' . preg_replace('/[^\d+]/', '', $phone) . '" class="com-mobile-nav-phone">' . $phone . '</a>';
+        }
+        if ($ctaText) {
+            $mobileNavHtml .= '<a href="' . $ctaUrl . '" class="com-mobile-nav-cta">' . $ctaText . '</a>';
+        }
+
+        // 電話番号（デスクトップ）
+        $phoneHtml = $phone
+            ? '<a href="tel:' . preg_replace('/[^\d+]/', '', $phone) . '" class="com-header-phone">' . $phone . '</a>'
+            : '';
+
+        // CTAボタン
+        $ctaHtml = $ctaText
+            ? '<a href="' . $ctaUrl . '" class="com-header-cta">' . $ctaText . '</a>'
+            : '';
+
+        return <<<HTML
+<header class="com-header">
+    <div class="com-header-inner">
+        <a href="/" class="com-header-logo">{$logoHtml}</a>
+        <nav class="com-header-nav">{$navHtml}</nav>
+        <div class="com-header-right">
+            {$phoneHtml}
+            {$ctaHtml}
+            <button class="com-hamburger" id="js-hamburger" aria-label="メニュー"><span></span></button>
+        </div>
+    </div>
+</header>
+<div class="com-mobile-nav" id="js-mobile-nav">
+    <div class="com-mobile-nav-panel">
+        {$mobileNavHtml}
+    </div>
+</div>
+HTML;
+    }
+
+    /**
+     * フッターHTMLを生成
+     */
+    public function renderFooter(Site $site): string
+    {
+        $config = $site->footer_config ?? [];
+        $navItems = $site->getNavItems();
+
+        $clinicName = e($config['clinic_name'] ?? $site->name);
+        $address = e($config['address'] ?? '');
+        $phone = e($config['phone'] ?? '');
+        $hours = e($config['hours'] ?? '');
+        $closedDay = e($config['closed_day'] ?? '');
+        $copyright = e($config['copyright'] ?? '© ' . date('Y') . ' ' . $site->name);
+
+        // 医院情報
+        $infoHtml = '<h3>' . $clinicName . '</h3>';
+        if ($address) $infoHtml .= '<p>' . $address . '</p>';
+        if ($phone) $infoHtml .= '<p>TEL: <a href="tel:' . preg_replace('/[^\d+]/', '', $phone) . '" style="color:rgba(255,255,255,0.8)">' . $phone . '</a></p>';
+        if ($hours) $infoHtml .= '<p>診療時間: ' . $hours . '</p>';
+        if ($closedDay) $infoHtml .= '<p>休診日: ' . $closedDay . '</p>';
+
+        // フッターナビ
+        $footerNavItems = $config['nav_items'] ?? [];
+        $validFooterNav = array_filter($footerNavItems, fn($item) => !empty($item['label']));
+        // フッター用navが空ならヘッダーと同じnavを使う
+        if (empty($validFooterNav)) {
+            $validFooterNav = $navItems;
+        }
+        $navHtml = '';
+        foreach ($validFooterNav as $item) {
+            $navHtml .= '<a href="' . e($item['url'] ?? '#') . '">' . e($item['label'] ?? '') . '</a>';
+        }
+
+        return <<<HTML
+<footer class="com-footer">
+    <div class="com-footer-inner">
+        <div class="com-footer-info">
+            {$infoHtml}
+        </div>
+        <nav class="com-footer-nav">
+            {$navHtml}
+        </nav>
+    </div>
+    <div class="com-footer-bottom">{$copyright}</div>
+</footer>
+HTML;
+    }
+
+    /**
+     * ハンバーガーメニュー用JavaScript
+     */
+    private function getHamburgerJs(): string
+    {
+        return <<<'JS'
+(function(){
+    var btn = document.getElementById('js-hamburger');
+    var nav = document.getElementById('js-mobile-nav');
+    if (!btn || !nav) return;
+    btn.addEventListener('click', function() {
+        btn.classList.toggle('is-open');
+        nav.classList.toggle('is-open');
+        document.body.style.overflow = nav.classList.contains('is-open') ? 'hidden' : '';
+    });
+    nav.addEventListener('click', function(e) {
+        if (e.target === nav) {
+            btn.classList.remove('is-open');
+            nav.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+    });
+    nav.querySelectorAll('a').forEach(function(a) {
+        a.addEventListener('click', function() {
+            btn.classList.remove('is-open');
+            nav.classList.remove('is-open');
+            document.body.style.overflow = '';
+        });
+    });
+})();
+JS;
     }
 
     private function getDefaultJs(): string

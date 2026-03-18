@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\ClinicComponent;
 use App\Models\ClinicDesign;
+use App\Models\Component;
 use App\Models\DesignToken;
 use App\Models\Site;
 use App\Models\SiteDesign;
@@ -43,13 +45,21 @@ class DesignCssService
             $css[] = $this->generateClinicOverrides($clinic->design);
         }
 
-        // 4. サイト固有トークン上書き
+        // 4. グローバルコンポーネントCSS
+        $css[] = $this->generateGlobalComponentCss();
+
+        // 5. 医院固有コンポーネントCSS
+        if ($clinic) {
+            $css[] = $this->generateClinicComponentCss($clinic->id);
+        }
+
+        // 6. サイト固有トークン上書き
         $design = $site->design;
         if ($design) {
             $css[] = $this->generateSiteOverrides($design);
-            // 5. コンポーネント個別スタイル
+            // 7. コンポーネント個別スタイル
             $css[] = $this->generateComponentOverrides($design);
-            // 6. カスタムCSS
+            // 8. カスタムCSS
             if ($design->custom_css) {
                 $css[] = "/* サイト固有カスタムCSS */\n" . $design->custom_css;
             }
@@ -131,6 +141,67 @@ class DesignCssService
         }
 
         return "/* サイト固有トークン上書き */\n:root {\n" . implode("\n", $lines) . "\n}";
+    }
+
+    /**
+     * グローバルコンポーネント（components テーブル）のcustom_css + default_styles
+     */
+    private function generateGlobalComponentCss(): string
+    {
+        $components = Component::whereNotNull('custom_css')
+            ->orWhereNotNull('default_styles')
+            ->orderBy('sort_order')
+            ->get();
+
+        if ($components->isEmpty()) {
+            return '';
+        }
+
+        $css = "/* グローバルコンポーネントCSS */\n";
+        foreach ($components as $comp) {
+            if ($comp->custom_css) {
+                $css .= $comp->custom_css . "\n";
+            }
+            if (!empty($comp->default_styles)) {
+                $css .= $this->stylesToCss(".{$comp->active_key}", $comp->default_styles);
+            }
+        }
+        return $css;
+    }
+
+    /**
+     * 医院固有コンポーネント（clinic_components テーブル）のCSS
+     */
+    private function generateClinicComponentCss(int $clinicId): string
+    {
+        $components = ClinicComponent::where('clinic_id', $clinicId)
+            ->whereNotNull('default_styles')
+            ->orderBy('sort_order')
+            ->get();
+
+        if ($components->isEmpty()) {
+            return '';
+        }
+
+        $css = "/* 医院固有コンポーネントCSS */\n";
+        foreach ($components as $comp) {
+            if (!empty($comp->default_styles)) {
+                $css .= $this->stylesToCss(".{$comp->key}", $comp->default_styles);
+            }
+        }
+        return $css;
+    }
+
+    /**
+     * default_styles配列をCSSルールに変換
+     */
+    private function stylesToCss(string $selector, array $styles): string
+    {
+        $lines = [];
+        foreach ($styles as $prop => $value) {
+            $lines[] = "  {$prop}: {$value};";
+        }
+        return "{$selector} {\n" . implode("\n", $lines) . "\n}\n";
     }
 
     /**

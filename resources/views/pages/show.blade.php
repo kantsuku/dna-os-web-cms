@@ -11,7 +11,7 @@
     </div>
     <div class="flex space-x-2">
         <a href="{{ route('clinic.sites.pages.import', [$clinic, $site, $page]) }}" class="bg-yellow-500 text-white px-3 py-2 rounded text-sm hover:bg-yellow-600">原稿取り込み</a>
-        <a href="{{ route('clinic.sites.pages.preview', [$clinic, $site, $page]) }}" class="bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700" target="_blank">全体プレビュー</a>
+        <a href="{{ route('public.content-frame', [$clinic, $site, $page, 'layout' => 1]) }}" class="bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700" target="_blank">全体プレビュー</a>
         <a href="{{ route('clinic.sites.pages.edit', [$clinic, $site, $page]) }}" class="bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-300">設定</a>
     </div>
 </div>
