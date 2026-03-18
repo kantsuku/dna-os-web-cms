@@ -227,6 +227,69 @@ class PageController extends Controller
         return response($buildService->previewPage($site, $page));
     }
 
+    /**
+     * ページコンテンツをcom-CSS付きで返す（iframe埋め込み用）
+     */
+    public function contentFrame(Clinic $clinic, Site $site, Page $page)
+    {
+        $gen = $page->currentGeneration;
+        if (!$gen) {
+            return response('<p style="color:#999;text-align:center;padding:40px">コンテンツがありません</p>');
+        }
+
+        $contentHtml = $gen->hasSections() ? $gen->buildFinalHtml() : ($gen->final_html ?? $gen->content_html ?? '');
+        $css = app(\App\Services\DesignCssService::class)->generateCss($site);
+
+        $editable = request()->boolean('editable') ? 'contenteditable="true"' : '';
+
+        return response(<<<HTML
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+{$css}
+body { margin: 0; padding: 0; }
+[contenteditable]:focus { outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 4px; }
+</style>
+</head>
+<body {$editable}>{$contentHtml}</body>
+</html>
+HTML);
+    }
+
+    /**
+     * 個別セクションをcom-CSS付きで返す（iframe埋め込み用）
+     */
+    public function sectionFrame(Clinic $clinic, Site $site, Page $page, string $sectionId)
+    {
+        $gen = $page->currentGeneration;
+        $section = $gen?->getSection($sectionId);
+        $contentHtml = $section['content_html'] ?? '<p>セクションが見つかりません</p>';
+        $css = app(\App\Services\DesignCssService::class)->generateCss($site);
+
+        $editable = request()->boolean('editable') ? 'contenteditable="true"' : '';
+
+        return response(<<<HTML
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+{$css}
+body { margin: 0; padding: 0; }
+[contenteditable]:focus { outline: 2px solid #6366f1; outline-offset: 2px; }
+</style>
+</head>
+<body {$editable}>{$contentHtml}</body>
+</html>
+HTML);
+    }
+
     public function compareGenerations(Clinic $clinic, Site $site, Page $page, Request $request)
     {
         $gen1 = PageGeneration::findOrFail($request->input('gen1'));

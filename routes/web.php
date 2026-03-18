@@ -73,6 +73,8 @@ Route::middleware('auth')->group(function () {
         // ── ページ管理 (PAGE) ──
         Route::resource('sites.pages', PageController::class);
         Route::get('/sites/{site}/pages/{page}/preview', [PageController::class, 'preview'])->name('sites.pages.preview');
+        Route::get('/sites/{site}/pages/{page}/content-frame', [PageController::class, 'contentFrame'])->name('sites.pages.content-frame');
+        Route::get('/sites/{site}/pages/{page}/section-frame/{sectionId}', [PageController::class, 'sectionFrame'])->name('sites.pages.section-frame');
 
         // コンテンツ取り込み
         Route::get('/sites/{site}/pages/{page}/import', [PageController::class, 'importForm'])->name('sites.pages.import');
