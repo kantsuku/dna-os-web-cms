@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChannelTask;
 use App\Models\DeployRecord;
+use App\Models\ExceptionContent;
 use App\Models\PageGeneration;
 use App\Models\Site;
+use App\Models\StrategicTask;
 
 class DashboardController extends Controller
 {
@@ -18,6 +21,19 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard', compact('sites', 'newGenerations', 'recentDeploys'));
+        // v3: 戦略タスク概要
+        $pendingStrategicTasks = StrategicTask::pending()->count();
+        $activeStrategicTasks = StrategicTask::active()->count();
+        $reviewReadyChannelTasks = ChannelTask::reviewReady()->count();
+        $pendingExceptions = ExceptionContent::whereIn('status', ['first_review', 'final_review'])->count();
+
+        // 承認待ち合計
+        $totalPendingApprovals = $pendingStrategicTasks + $reviewReadyChannelTasks + $pendingExceptions;
+
+        return view('dashboard', compact(
+            'sites', 'newGenerations', 'recentDeploys',
+            'pendingStrategicTasks', 'activeStrategicTasks',
+            'reviewReadyChannelTasks', 'totalPendingApprovals',
+        ));
     }
 }

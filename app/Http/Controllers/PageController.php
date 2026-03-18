@@ -27,10 +27,16 @@ class PageController extends Controller
         $validated = $request->validate([
             'slug' => ['required', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:500'],
-            'page_type' => ['required', 'in:top,lower,blog,news,exception'],
+            'page_type' => ['required', 'in:top,lower,blog,news,exception,case'],
+            'template_key' => ['nullable', 'string', 'max:100'],
             'treatment_key' => ['nullable', 'string', 'max:100'],
+            'dna_source_key' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['nullable', 'integer'],
         ]);
+
+        // コンテンツ分類の自動設定
+        $validated['content_classification'] = Page::classifyByPageType($validated['page_type']);
+        $validated['template_key'] = $validated['template_key'] ?? 'generic';
 
         $page = $site->pages()->create($validated);
         return redirect()->route('sites.pages.show', [$site, $page])->with('success', 'ページを作成しました');
@@ -52,10 +58,13 @@ class PageController extends Controller
         $validated = $request->validate([
             'slug' => ['required', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:500'],
-            'page_type' => ['required', 'in:top,lower,blog,news,exception'],
+            'page_type' => ['required', 'in:top,lower,blog,news,exception,case'],
+            'template_key' => ['nullable', 'string', 'max:100'],
             'treatment_key' => ['nullable', 'string', 'max:100'],
+            'dna_source_key' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['nullable', 'integer'],
             'status' => ['nullable', 'in:draft,ready,published,archived'],
+            'meta' => ['nullable', 'array'],
         ]);
 
         $page->update($validated);

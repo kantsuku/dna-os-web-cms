@@ -2,12 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\ChannelTask;
 use App\Models\Component;
 use App\Models\DesignToken;
+use App\Models\FreeInputRequest;
 use App\Models\Page;
 use App\Models\PageGeneration;
 use App\Models\Site;
 use App\Models\SiteDesign;
+use App\Models\StrategicTask;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -55,6 +58,7 @@ class DemoSeeder extends Seeder
         $site->users()->attach($admin->id);
 
         $this->seedDemoPages($site);
+        $this->seedV3DemoData($site, $admin);
     }
 
     private function seedDesignTokens(): void
@@ -185,6 +189,110 @@ class DemoSeeder extends Seeder
             'page_id' => $page->id, 'generation' => 1, 'source' => 'manual',
             'content_html' => $html, 'content_text' => strip_tags($html),
             'final_html' => $html, 'status' => 'ready',
+        ]);
+    }
+
+    private function seedV3DemoData(Site $site, User $admin): void
+    {
+        // 戦略タスク: DNA-OS更新起因
+        $st1 = StrategicTask::create([
+            'id' => 'ST-20260318-001',
+            'clinic_id' => $site->clinic_id,
+            'trigger_type' => 'dna_update',
+            'trigger_source_id' => 'PRP_20260318_001',
+            'title' => '診療方針変更に伴うインプラントページの更新',
+            'description' => 'DNA-OS上でインプラントの治療方針が更新されました。該当ページの本文を最新方針に合わせる必要があります。',
+            'intent' => 'インプラントページの本文・メタ情報を最新の診療方針に合わせる',
+            'priority' => 'high',
+            'risk_level' => 'medium',
+            'target_channels' => ['web'],
+            'status' => 'pending_approval',
+            'created_by' => 'ai_chief',
+        ]);
+
+        // 配下のチャネルタスク
+        $implantPage = $site->pages()->where('slug', '/implant')->first();
+        if ($implantPage) {
+            ChannelTask::create([
+                'id' => 'CT-WEB-20260318-001',
+                'strategic_task_id' => $st1->id,
+                'channel' => 'web',
+                'task_type' => 'update_content',
+                'title' => 'インプラントページ本文の更新',
+                'instruction' => '診療方針の変更に伴い、インプラントページのsec_01（治療の説明）を更新してください。',
+                'target_site_id' => $site->id,
+                'target_page_id' => $implantPage->id,
+                'target_sections' => ['sec_01'],
+                'input_data' => [
+                    'dna_changes' => [
+                        ['field' => 'content', 'old_value' => '従来のインプラント治療', 'new_value' => '最新のガイデッドサージェリーを導入'],
+                    ],
+                ],
+                'status' => 'pending',
+                'assigned_to' => 'ai',
+            ]);
+
+            ChannelTask::create([
+                'id' => 'CT-WEB-20260318-002',
+                'strategic_task_id' => $st1->id,
+                'channel' => 'web',
+                'task_type' => 'update_meta',
+                'title' => 'インプラントページメタ情報の改善',
+                'instruction' => '新しい診療方針を反映したメタディスクリプションを生成してください。',
+                'target_site_id' => $site->id,
+                'target_page_id' => $implantPage->id,
+                'status' => 'pending',
+                'assigned_to' => 'ai',
+            ]);
+        }
+
+        // 戦略タスク: フリー入力起因
+        $st2 = StrategicTask::create([
+            'id' => 'ST-20260318-002',
+            'clinic_id' => $site->clinic_id,
+            'trigger_type' => 'free_input',
+            'title' => 'TOPページの院長あいさつ文言変更',
+            'description' => 'クライアントからの依頼: 「TOPページの院長あいさつを変更したい」',
+            'intent' => 'TOPページの院長あいさつセクションのテキストを変更する',
+            'priority' => 'medium',
+            'risk_level' => 'low',
+            'target_channels' => ['web'],
+            'status' => 'approved',
+            'created_by' => 'human:' . $admin->id,
+            'approved_by' => $admin->id,
+            'approved_at' => now(),
+        ]);
+
+        // フリー入力レコード
+        FreeInputRequest::create([
+            'clinic_id' => $site->clinic_id,
+            'site_id' => $site->id,
+            'raw_text' => 'TOPページの院長あいさつを「患者さま一人ひとりの健康を守るために」に変更してほしい',
+            'ai_interpretation' => [
+                'target_page' => '/',
+                'target_section' => 'top_greeting',
+                'action' => 'テキスト変更',
+                'new_text' => '患者さま一人ひとりの健康を守るために',
+            ],
+            'interpretation_status' => 'confirmed',
+            'strategic_task_id' => $st2->id,
+            'submitted_by' => $admin->id,
+        ]);
+
+        // 完了済みタスク
+        StrategicTask::create([
+            'id' => 'ST-20260317-001',
+            'clinic_id' => $site->clinic_id,
+            'trigger_type' => 'scheduled_check',
+            'title' => '定期リンク切れチェック',
+            'description' => '月次の定期チェック：サイト内のリンク切れを検出・修正',
+            'priority' => 'low',
+            'risk_level' => 'low',
+            'target_channels' => ['web'],
+            'status' => 'completed',
+            'created_by' => 'ai_chief',
+            'approved_by' => $admin->id,
+            'approved_at' => now()->subDay(),
         ]);
     }
 }

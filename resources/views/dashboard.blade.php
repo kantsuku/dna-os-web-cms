@@ -3,19 +3,27 @@
 @section('content')
 <h1 class="text-2xl font-bold mb-8">ダッシュボード</h1>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="text-sm text-gray-500">管理サイト数</div>
-        <div class="text-3xl font-bold text-indigo-600 mt-1">{{ $sites->count() }}</div>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-5">
+        <div class="text-xs text-gray-500">管理サイト</div>
+        <div class="text-2xl font-bold text-indigo-600 mt-1">{{ $sites->count() }}</div>
     </div>
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="text-sm text-gray-500">未公開の新世代</div>
-        <div class="text-3xl font-bold text-yellow-600 mt-1">{{ $newGenerations }}</div>
+    <div class="bg-white rounded-lg shadow p-5">
+        <div class="text-xs text-gray-500">総ページ</div>
+        <div class="text-2xl font-bold text-green-600 mt-1">{{ $sites->sum('pages_count') }}</div>
     </div>
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="text-sm text-gray-500">総ページ数</div>
-        <div class="text-3xl font-bold text-green-600 mt-1">{{ $sites->sum('pages_count') }}</div>
+    <div class="bg-white rounded-lg shadow p-5">
+        <div class="text-xs text-gray-500">未公開世代</div>
+        <div class="text-2xl font-bold text-yellow-600 mt-1">{{ $newGenerations }}</div>
     </div>
+    <a href="{{ route('approvals.index') }}" class="bg-white rounded-lg shadow p-5 hover:ring-2 hover:ring-indigo-300 transition">
+        <div class="text-xs text-gray-500">承認待ち</div>
+        <div class="text-2xl font-bold text-red-600 mt-1">{{ $totalPendingApprovals }}</div>
+    </a>
+    <a href="{{ route('strategy.tasks.index', ['status' => 'in_progress']) }}" class="bg-white rounded-lg shadow p-5 hover:ring-2 hover:ring-indigo-300 transition">
+        <div class="text-xs text-gray-500">進行中タスク</div>
+        <div class="text-2xl font-bold text-blue-600 mt-1">{{ $activeStrategicTasks }}</div>
+    </a>
 </div>
 
 <div class="bg-white rounded-lg shadow">
