@@ -49,6 +49,19 @@ class User extends Authenticatable
         return $this->belongsToMany(Site::class);
     }
 
+    public function clinics(): BelongsToMany
+    {
+        return $this->belongsToMany(Clinic::class);
+    }
+
+    public function canAccessClinic(Clinic $clinic): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        return $this->clinics()->where('clinics.id', $clinic->id)->exists();
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

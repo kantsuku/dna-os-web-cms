@@ -13,31 +13,52 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center space-x-6">
-                    <a href="{{ route('dashboard') }}" class="text-xl font-bold text-indigo-600">ACMS</a>
-                    <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-900 text-sm {{ request()->routeIs('dashboard') ? 'font-semibold text-gray-900' : '' }}">ダッシュボード</a>
+                    <a href="{{ route('clinics.select') }}" class="text-xl font-bold text-indigo-600">ACMS</a>
 
-                    {{-- 戦略 --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="text-gray-600 hover:text-gray-900 text-sm {{ request()->routeIs('strategy.*') ? 'font-semibold text-gray-900' : '' }}">戦略 ▾</button>
-                        <div x-show="open" @click.away="open = false" class="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg" style="display:none">
-                            <a href="{{ route('strategy.tasks.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">タスク一覧</a>
-                            <a href="{{ route('strategy.free-input.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">修正依頼</a>
-                            <a href="{{ route('strategy.dna-updates.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">DNA-OS更新</a>
-                            <a href="{{ route('strategy.channel-status.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">実行状況</a>
+                    @if(isset($clinic))
+                        <span class="text-gray-300">|</span>
+                        <a href="{{ route('clinic.dashboard', $clinic) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600">{{ $clinic->name }}</a>
+
+                        {{-- 戦略 --}}
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="text-gray-600 hover:text-gray-900 text-sm">戦略 ▾</button>
+                            <div x-show="open" @click.away="open = false" class="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg" style="display:none">
+                                <a href="{{ route('clinic.strategy.tasks.index', $clinic) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">タスク一覧</a>
+                                <a href="{{ route('clinic.strategy.free-input.index', $clinic) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">修正依頼</a>
+                                <a href="{{ route('clinic.strategy.dna-updates.index', $clinic) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">DNA-OS更新</a>
+                                <a href="{{ route('clinic.strategy.channel-status.index', $clinic) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">実行状況</a>
+                            </div>
                         </div>
-                    </div>
 
-                    <a href="{{ route('sites.index') }}" class="text-gray-600 hover:text-gray-900 text-sm {{ request()->routeIs('sites.*') ? 'font-semibold text-gray-900' : '' }}">サイト</a>
-                    <a href="{{ route('approvals.index') }}" class="text-gray-600 hover:text-gray-900 text-sm {{ request()->routeIs('approvals.*') ? 'font-semibold text-gray-900' : '' }}">承認</a>
+                        {{-- サイト --}}
+                        @if(isset($clinic) && $clinic->sites->count() > 0)
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="text-gray-600 hover:text-gray-900 text-sm">サイト ▾</button>
+                                <div x-show="open" @click.away="open = false" class="absolute z-10 mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg" style="display:none">
+                                    @foreach($clinic->sites as $s)
+                                        <a href="{{ route('clinic.sites.show', [$clinic, $s]) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                            {{ $s->name }}
+                                            <span class="text-xs text-gray-400 ml-1">{{ $s->getSiteTypeLabel() }}</span>
+                                        </a>
+                                    @endforeach
+                                    <div class="border-t">
+                                        <a href="{{ route('clinic.sites.create', $clinic) }}" class="block px-4 py-2 text-sm text-indigo-600 hover:bg-gray-50">+ サイト追加</a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
 
-                    {{-- デザイン --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="text-gray-600 hover:text-gray-900 text-sm {{ request()->routeIs('design.*') ? 'font-semibold text-gray-900' : '' }}">デザイン ▾</button>
-                        <div x-show="open" @click.away="open = false" class="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg" style="display:none">
-                            <a href="{{ route('design.tokens') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">トークン</a>
-                            <a href="{{ route('design.components') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">コンポーネント</a>
+                        <a href="{{ route('clinic.approvals.index', $clinic) }}" class="text-gray-600 hover:text-gray-900 text-sm">承認</a>
+
+                        {{-- デザイン --}}
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="text-gray-600 hover:text-gray-900 text-sm">デザイン ▾</button>
+                            <div x-show="open" @click.away="open = false" class="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg" style="display:none">
+                                <a href="{{ route('clinic.design.tokens', $clinic) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">トークン</a>
+                                <a href="{{ route('clinic.design.components', $clinic) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">コンポーネント</a>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-sm text-gray-500">{{ auth()->user()->name }}</span>

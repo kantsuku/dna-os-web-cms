@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\ChannelTask;
+use App\Models\Clinic;
+use App\Models\ClinicDesign;
 use App\Models\Component;
 use App\Models\DesignToken;
 use App\Models\FreeInputRequest;
@@ -36,26 +38,63 @@ class DemoSeeder extends Seeder
         $this->seedDesignTokens();
         $this->seedComponents();
 
-        $site = Site::create([
+        // v3.1: 医院（Clinic）を中心に構成
+        $clinic = Clinic::create([
             'clinic_id' => 'demo_clinic_001',
             'name' => 'デモ矯正歯科',
-            'domain' => 'demo-ortho.example.com',
             'status' => 'active',
         ]);
+        $clinic->users()->attach($admin->id);
 
-        $design = SiteDesign::create([
-            'site_id' => $site->id,
-            'name' => 'color1（ブルーグレー）',
+        // 医院トンマナ
+        ClinicDesign::create([
+            'clinic_id' => $clinic->id,
+            'name' => 'デモ矯正歯科トンマナ',
             'tokens' => [
                 'color-main' => '#DDDDDC',
                 'color-main2' => '#2793EA',
                 'color-sub' => '#406C30',
             ],
+            'tone_and_manner' => [
+                'brand_voice' => '優しく穏やかな、知的な女性の話し言葉',
+                'temperature' => 'warm',
+                'persona' => '患者さまに寄り添う女性スタッフ',
+            ],
+            'prohibited_terms' => ['無痛', '絶対に', '必ず治る', '100%', '最短', '日本一'],
+            'recommended_terms' => ['丁寧', '安心', '一人ひとり', '寄り添う'],
+        ]);
+
+        // メインHP
+        $site = Site::create([
+            'clinic_id' => 'demo_clinic_001',
+            'clinic_ref_id' => $clinic->id,
+            'site_type' => 'hp',
+            'site_label' => 'メインHP',
+            'name' => 'デモ矯正歯科',
+            'domain' => 'demo-ortho.example.com',
             'status' => 'active',
         ]);
 
+        // 採用サイト
+        $recruitSite = Site::create([
+            'clinic_id' => 'demo_clinic_001',
+            'clinic_ref_id' => $clinic->id,
+            'site_type' => 'recruitment',
+            'site_label' => '採用サイト',
+            'name' => 'デモ矯正歯科 採用情報',
+            'domain' => 'recruit.demo-ortho.example.com',
+            'status' => 'active',
+        ]);
+
+        $design = SiteDesign::create([
+            'site_id' => $site->id,
+            'name' => 'HP用デザイン',
+            'tokens' => ['color-main2' => '#2793EA'],
+            'status' => 'active',
+        ]);
         $site->update(['design_id' => $design->id]);
         $site->users()->attach($admin->id);
+        $recruitSite->users()->attach($admin->id);
 
         $this->seedDemoPages($site);
         $this->seedV3DemoData($site, $admin);

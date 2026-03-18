@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ClinicDesign;
 use App\Models\DesignToken;
 use App\Models\Site;
 use App\Models\SiteDesign;
@@ -23,6 +24,9 @@ class DesignCssService
      * - ベースCSSをCSS Custom Properties対応版に置き換え
      * - com- → acms- のクラス名マッピングレイヤー追加
      */
+    /**
+     * CSS生成（4層マージ: グローバル → 医院トンマナ → サイト固有 → カスタム）
+     */
     public function generateCss(Site $site): string
     {
         $css = [];
@@ -30,16 +34,22 @@ class DesignCssService
         // 1. ベースCSS（既存テーマ）
         $css[] = $this->getBaseThemeCss($site);
 
-        // 2. デザイントークン → CSS Custom Properties（パッチレイヤー）
+        // 2. デザイントークン → CSS Custom Properties（グローバルデフォルト）
         $css[] = $this->generateTokenVariables();
 
-        // 3. サイト固有トークン上書き
+        // 3. 医院トンマナ上書き（v3.1新規）
+        $clinic = $site->clinic;
+        if ($clinic && $clinic->design) {
+            $css[] = $this->generateClinicOverrides($clinic->design);
+        }
+
+        // 4. サイト固有トークン上書き
         $design = $site->design;
         if ($design) {
             $css[] = $this->generateSiteOverrides($design);
-            // 4. コンポーネント個別スタイル
+            // 5. コンポーネント個別スタイル
             $css[] = $this->generateComponentOverrides($design);
-            // 5. カスタムCSS
+            // 6. カスタムCSS
             if ($design->custom_css) {
                 $css[] = "/* サイト固有カスタムCSS */\n" . $design->custom_css;
             }
@@ -85,6 +95,24 @@ class DesignCssService
         }
 
         return "/* デザイントークン（CSS Custom Properties） */\n:root {\n" . implode("\n", $lines) . "\n}";
+    }
+
+    /**
+     * 医院トンマナ上書き
+     */
+    private function generateClinicOverrides(ClinicDesign $clinicDesign): string
+    {
+        $tokens = $clinicDesign->tokens ?? [];
+        if (empty($tokens)) {
+            return '';
+        }
+
+        $lines = [];
+        foreach ($tokens as $key => $value) {
+            $lines[] = "  --{$key}: {$value};";
+        }
+
+        return "/* 医院トンマナ上書き */\n:root {\n" . implode("\n", $lines) . "\n}";
     }
 
     /**
