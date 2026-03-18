@@ -1,107 +1,116 @@
 @extends('layouts.app')
-
-@section('title', $page->title)
-
+@section('title', $page->title . ' - ' . $site->name)
 @section('content')
+<div class="mb-6">
+    <a href="{{ route('sites.show', $site) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; {{ $site->name }}に戻る</a>
+</div>
+
 <div class="flex justify-between items-center mb-6">
     <div>
-        <a href="{{ route('sites.show', $site) }}" class="text-sm text-gray-500 hover:underline">&larr; {{ $site->name }}</a>
-        <h1 class="text-2xl font-bold mt-1">{{ $page->title }}</h1>
-        <p class="text-sm text-gray-500">{{ $page->slug }} / {{ $page->page_type }} / テンプレート: {{ $page->template_name }}</p>
+        <h1 class="text-2xl font-bold">{{ $page->title }}</h1>
+        <p class="text-sm text-gray-500 mt-1">/{{ $page->slug }} | タイプ: {{ $page->page_type }}</p>
     </div>
-    <div class="flex space-x-2">
-        <a href="{{ route('sites.pages.preview', [$site, $page]) }}" class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700" target="_blank">プレビュー</a>
-        <a href="{{ route('sites.pages.edit', [$site, $page]) }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">ページ設定</a>
+    <div class="flex space-x-3">
+        <a href="{{ route('sites.pages.import', [$site, $page]) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-600">原稿取り込み</a>
+        <a href="{{ route('sites.pages.edit-content', [$site, $page]) }}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">微細編集</a>
+        <a href="{{ route('sites.pages.preview', [$site, $page]) }}" class="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700" target="_blank">プレビュー</a>
+        <a href="{{ route('sites.pages.edit', [$site, $page]) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300">設定編集</a>
     </div>
 </div>
 
-{{-- ページ情報 --}}
-<div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-lg shadow p-4">
-        <span class="text-sm text-gray-500">ステータス</span>
-        <div class="mt-1">
-            <span class="inline-flex px-2 py-1 text-sm rounded-full
-                {{ $page->status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
-                {{ $page->status }}
-            </span>
+{{-- 現在の世代のコンテンツプレビュー --}}
+@if($page->currentGeneration)
+<div class="bg-white rounded-lg shadow mb-8">
+    <div class="px-6 py-4 border-b flex justify-between items-center">
+        <h2 class="text-lg font-semibold">現在のコンテンツ（世代 {{ $page->currentGeneration->generation }}）</h2>
+        <span class="px-2 py-1 text-xs rounded-full {{ $page->currentGeneration->status === 'ready' ? 'bg-blue-100 text-blue-800' : ($page->currentGeneration->status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800') }}">
+            {{ $page->currentGeneration->status }}
+        </span>
+    </div>
+    <div class="p-6">
+        <div class="border rounded-md p-4 bg-gray-50 max-h-96 overflow-y-auto prose prose-sm max-w-none">
+            {!! $page->currentGeneration->final_html ?? $page->currentGeneration->content_html ?? '<p class="text-gray-400">コンテンツがありません</p>' !!}
         </div>
     </div>
-    <div class="bg-white rounded-lg shadow p-4">
-        <span class="text-sm text-gray-500">バージョン</span>
-        <div class="text-lg font-semibold mt-1">v{{ $page->publish_version }}</div>
-    </div>
-    <div class="bg-white rounded-lg shadow p-4">
-        <span class="text-sm text-gray-500">セクション数</span>
-        <div class="text-lg font-semibold mt-1">{{ $page->sections->count() }}</div>
-    </div>
 </div>
+@else
+<div class="bg-white rounded-lg shadow mb-8 p-6 text-center text-gray-500">
+    まだコンテンツがありません。「原稿取り込み」から始めてください。
+</div>
+@endif
 
-{{-- セクション一覧 --}}
+{{-- 世代履歴テーブル --}}
 <div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 class="text-lg font-semibold">セクション</h2>
+    <div class="px-6 py-4 border-b">
+        <h2 class="text-lg font-semibold">世代履歴</h2>
     </div>
-
-    {{-- セクション追加フォーム --}}
-    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50" x-data="{ open: false }">
-        <button @click="open = !open" class="text-sm text-indigo-600 hover:underline">+ セクション追加</button>
-        <form method="POST" action="{{ route('sites.pages.sections.store', [$site, $page]) }}" x-show="open" x-cloak class="mt-4 grid grid-cols-3 gap-4">
-            @csrf
-            <div>
-                <input type="text" name="section_key" placeholder="section_key (例: hero, faq)" required
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-            </div>
-            <div>
-                <select name="content_source_type" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                    <option value="dna_os">DNA-OS</option>
-                    <option value="manual">手動入力</option>
-                    <option value="exception">例外コンテンツ</option>
-                    <option value="client_post">クライアント投稿</option>
-                </select>
-            </div>
-            <div>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700">追加</button>
-            </div>
-        </form>
-    </div>
-
-    {{-- セクションリスト --}}
-    <div class="divide-y divide-gray-200">
-        @forelse($page->sections as $section)
-            <div class="px-6 py-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-mono font-semibold text-sm">{{ $section->section_key }}</span>
-                            <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">{{ $section->content_source_type }}</span>
-                            @if($section->is_human_edited)
-                                <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-700">修正済み</span>
-                            @endif
-                            <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-indigo-50 text-indigo-600">{{ $section->override_policy }}</span>
-                        </div>
-
-                        {{-- 最新バリアント --}}
-                        @php $latestVariant = $section->variants->first(); @endphp
-                        @if($latestVariant)
-                            <div class="mt-2 text-sm text-gray-600 line-clamp-2">
-                                {{ Str::limit(strip_tags($latestVariant->content_html), 200) }}
-                            </div>
-                            <div class="mt-1 text-xs text-gray-400">
-                                v{{ $latestVariant->version }} / {{ $latestVariant->source_type }} / {{ $latestVariant->status }}
-                            </div>
-                        @else
-                            <div class="mt-2 text-sm text-gray-400">コンテンツなし</div>
-                        @endif
-                    </div>
-                    <div class="flex space-x-2">
-                        <a href="{{ route('sections.edit', $section) }}" class="text-indigo-600 hover:underline text-sm">編集</a>
-                        <a href="{{ route('sections.show', $section) }}" class="text-gray-500 hover:underline text-sm">詳細</a>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-8 text-center text-gray-500">セクションがありません</div>
-        @endforelse
-    </div>
+    <table class="w-full">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">世代</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ソース</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ソースURL</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">手動パッチ</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">作成日時</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            @forelse($page->generations as $gen)
+            <tr class="hover:bg-gray-50 {{ $gen->id === $page->current_generation_id ? 'bg-indigo-50' : '' }}">
+                <td class="px-6 py-4 text-sm font-medium">
+                    #{{ $gen->generation }}
+                    @if($gen->id === $page->current_generation_id)
+                        <span class="ml-1 text-xs text-indigo-600">(現在)</span>
+                    @endif
+                </td>
+                <td class="px-6 py-4 text-sm">{{ $gen->source ?? '-' }}</td>
+                <td class="px-6 py-4">
+                    @php
+                        $genColors = [
+                            'draft' => 'bg-gray-100 text-gray-800',
+                            'ready' => 'bg-blue-100 text-blue-800',
+                            'published' => 'bg-green-100 text-green-800',
+                        ];
+                    @endphp
+                    <span class="px-2 py-1 text-xs rounded-full {{ $genColors[$gen->status] ?? 'bg-gray-100 text-gray-800' }}">
+                        {{ $gen->status }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">
+                    @if($gen->source_url)
+                        <a href="{{ $gen->source_url }}" target="_blank" class="text-indigo-600 hover:underline truncate block max-w-xs">{{ Str::limit($gen->source_url, 40) }}</a>
+                    @else
+                        -
+                    @endif
+                </td>
+                <td class="px-6 py-4 text-sm">
+                    @if($gen->hasHumanPatch())
+                        <span class="text-yellow-600 font-medium">あり</span>
+                    @else
+                        <span class="text-gray-400">なし</span>
+                    @endif
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ $gen->created_at->format('Y-m-d H:i') }}</td>
+                <td class="px-6 py-4 text-right">
+                    @if($gen->status === 'draft')
+                    <form method="POST" action="{{ route('sites.pages.generations.ready', [$site, $page, $gen]) }}" class="inline">
+                        @csrf
+                        <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600"
+                            onclick="return confirm('この世代をready状態にしますか？')">
+                            readyにする
+                        </button>
+                    </form>
+                    @endif
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500">世代履歴がありません</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
 @endsection

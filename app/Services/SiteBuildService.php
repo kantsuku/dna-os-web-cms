@@ -5,14 +5,14 @@ namespace App\Services;
 use App\Models\Page;
 use App\Models\Site;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\View;
 
 class SiteBuildService
 {
     private string $buildBasePath;
 
-    public function __construct()
-    {
+    public function __construct(
+        private DesignCssService $cssService,
+    ) {
         $this->buildBasePath = storage_path('app/builds');
     }
 
@@ -25,160 +25,136 @@ class SiteBuildService
         File::ensureDirectoryExists($buildPath);
         File::ensureDirectoryExists($buildPath . '/assets/css');
         File::ensureDirectoryExists($buildPath . '/assets/js');
-        File::ensureDirectoryExists($buildPath . '/assets/images');
 
+        // CSS生成
+        $css = $this->cssService->generateCss($site);
+        File::put($buildPath . '/assets/css/style.css', $css);
+
+        // JS
+        File::put($buildPath . '/assets/js/main.js', $this->getDefaultJs());
+
+        // ページビルド
         $pages = $site->pages()
-            ->whereIn('status', ['approved', 'published'])
-            ->with(['sections.variants' => fn ($q) => $q->whereIn('status', ['approved', 'published'])->orderByDesc('version')])
+            ->whereIn('status', ['ready', 'published'])
+            ->with('currentGeneration')
             ->get();
 
         foreach ($pages as $page) {
-            $this->buildPage($site, $page, $buildPath);
+            if ($page->currentGeneration) {
+                $this->buildPage($site, $page, $buildPath);
+            }
         }
 
-        // 共通アセットのコピー
-        $this->copyAssets($site, $buildPath);
-
-        // .htaccess 生成
-        $this->generateHtaccess($buildPath);
+        // .htaccess
+        File::put($buildPath . '/.htaccess', $this->getHtaccess());
 
         return $buildPath;
     }
 
     /**
-     * 1ページをビルド
+     * 1ページのHTMLをビルド
      */
-    public function buildPage(Site $site, Page $page, string $buildPath): string
+    public function buildPage(Site $site, Page $page, string $buildPath): void
     {
-        $sections = [];
-        foreach ($page->sections as $section) {
-            $variant = $section->variants
-                ->whereIn('status', ['published', 'approved'])
-                ->sortByDesc('version')
-                ->first();
+        $generation = $page->currentGeneration;
+        $contentHtml = $generation->final_html;
 
-            $sections[$section->section_key] = [
-                'key' => $section->section_key,
-                'html' => $variant?->content_html ?? '',
-                'raw' => $variant?->content_raw ?? '',
-            ];
-        }
+        $html = $this->wrapInLayout($site, $page, $contentHtml);
 
-        $templateName = $this->resolveTemplateName($page);
-
-        $html = $this->renderTemplate($templateName, [
-            'site' => $site,
-            'page' => $page,
-            'sections' => $sections,
-        ]);
-
-        // ファイル配置
         $pagePath = $page->slug === '/' ? '/index.html' : '/' . trim($page->slug, '/') . '/index.html';
         $fullPath = $buildPath . $pagePath;
         File::ensureDirectoryExists(dirname($fullPath));
         File::put($fullPath, $html);
-
-        return $fullPath;
     }
 
     /**
-     * テンプレート名を解決
+     * プレビュー用HTML生成
      */
-    private function resolveTemplateName(Page $page): string
+    public function previewPage(Site $site, Page $page, ?string $html = null): string
     {
-        $template = $page->template_name;
+        $contentHtml = $html ?? $page->currentGeneration?->final_html ?? '<p>コンテンツなし</p>';
+        $css = $this->cssService->generateCss($site);
 
-        if ($page->page_type === 'top') {
-            return 'site-templates.top.' . ($template ?: 'default');
-        }
-
-        return 'site-templates.lower.' . ($template ?: 'generic');
+        return $this->wrapInLayout($site, $page, $contentHtml, $css);
     }
 
     /**
-     * Bladeテンプレートをレンダリング
+     * コンテンツをページレイアウトで包む
      */
-    private function renderTemplate(string $templateName, array $data): string
+    private function wrapInLayout(Site $site, Page $page, string $contentHtml, ?string $inlineCss = null): string
     {
-        if (!View::exists($templateName)) {
-            $templateName = 'site-templates.lower.generic';
-        }
+        $cssLink = $inlineCss
+            ? "<style>{$inlineCss}</style>"
+            : '<link rel="stylesheet" href="/assets/css/style.css">';
 
-        return View::make($templateName, $data)->render();
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$page->title} | {$site->name}</title>
+    {$cssLink}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="/" class="site-name">{$site->name}</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            {$contentHtml}
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {$site->name}</p>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>
+HTML;
     }
 
-    /**
-     * 共通アセットをビルドディレクトリにコピー
-     */
-    private function copyAssets(Site $site, string $buildPath): void
+    private function getDefaultJs(): string
     {
-        $assetsSource = resource_path('site-assets/' . $site->template_set);
-
-        if (!File::isDirectory($assetsSource)) {
-            $assetsSource = resource_path('site-assets/default');
-        }
-
-        if (File::isDirectory($assetsSource)) {
-            File::copyDirectory($assetsSource, $buildPath . '/assets');
-        }
+        return <<<'JS'
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            var t = document.querySelector(this.getAttribute('href'));
+            if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+        });
+    });
+});
+JS;
     }
 
-    /**
-     * .htaccess 生成
-     */
-    private function generateHtaccess(string $buildPath): void
+    private function getHtaccess(): string
     {
-        $htaccess = <<<'HTACCESS'
+        return <<<'HTACCESS'
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ /$1/index.html [L]
 
-# キャッシュ設定
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType text/css "access plus 1 month"
     ExpiresByType application/javascript "access plus 1 month"
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/svg+xml "access plus 1 month"
     ExpiresByType image/webp "access plus 1 month"
 </IfModule>
 
-# Gzip
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css application/javascript
 </IfModule>
 HTACCESS;
-
-        File::put($buildPath . '/.htaccess', $htaccess);
-    }
-
-    /**
-     * プレビュー用：1ページだけレンダリングしてHTMLを返す
-     */
-    public function previewPage(Site $site, Page $page): string
-    {
-        $sections = [];
-        foreach ($page->sections()->with('variants')->get() as $section) {
-            $variant = $section->variants
-                ->whereIn('status', ['published', 'approved', 'draft'])
-                ->sortByDesc('version')
-                ->first();
-
-            $sections[$section->section_key] = [
-                'key' => $section->section_key,
-                'html' => $variant?->content_html ?? '',
-                'raw' => $variant?->content_raw ?? '',
-            ];
-        }
-
-        $templateName = $this->resolveTemplateName($page);
-
-        return $this->renderTemplate($templateName, [
-            'site' => $site,
-            'page' => $page,
-            'sections' => $sections,
-        ]);
     }
 }

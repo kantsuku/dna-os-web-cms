@@ -8,39 +8,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ExceptionContent extends Model
 {
     protected $fillable = [
-        'site_id',
-        'content_type',
-        'title',
-        'content_html',
-        'risk_level',
-        'compliance_notes',
-        'requires_specialist_review',
-        'status',
-        'linked_section_id',
-        'reviewed_by',
-        'reviewed_at',
+        'page_id', 'content_type', 'title', 'content_html',
+        'ai_enhanced_html', 'use_ai_version', 'compliance_notes', 'status',
     ];
 
     protected function casts(): array
     {
-        return [
-            'requires_specialist_review' => 'boolean',
-            'reviewed_at' => 'datetime',
-        ];
+        return ['use_ai_version' => 'boolean'];
     }
 
-    public function site(): BelongsTo
+    public function page(): BelongsTo
     {
-        return $this->belongsTo(Site::class);
+        return $this->belongsTo(Page::class);
     }
 
-    public function linkedSection(): BelongsTo
+    public function getActiveHtmlAttribute(): string
     {
-        return $this->belongsTo(Section::class, 'linked_section_id');
-    }
-
-    public function reviewer(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'reviewed_by');
+        return $this->use_ai_version && $this->ai_enhanced_html
+            ? $this->ai_enhanced_html
+            : $this->content_html;
     }
 }

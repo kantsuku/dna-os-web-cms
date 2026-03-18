@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Page;
-use App\Models\PublishRecord;
+use App\Models\DeployRecord;
 use App\Models\Site;
 use App\Services\FtpDeployService;
 use App\Services\SiteBuildService;
@@ -13,41 +12,51 @@ class PublishController extends Controller
 {
     public function index(Site $site)
     {
-        $approvedPages = $site->pages()
-            ->whereIn('status', ['approved', 'published'])
-            ->withCount('sections')
+        $readyPages = $site->pages()
+            ->where('status', 'ready')
+            ->with('currentGeneration')
             ->get();
 
-        $history = $site->publishRecords()
+        $history = $site->deployRecords()
             ->with('deployer')
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return view('publish.index', compact('site', 'approvedPages', 'history'));
+        return view('publish.index', compact('site', 'readyPages', 'history'));
     }
 
     public function deploy(Request $request, Site $site, SiteBuildService $buildService, FtpDeployService $ftpService)
     {
         $pageIds = $request->input('page_ids', []);
 
+        // 世代スナップショット
+        $snapshot = [];
+        $pages = $site->pages()->whereIn('id', $pageIds)->with('currentGeneration')->get();
+        foreach ($pages as $page) {
+            if ($page->currentGeneration) {
+                $snapshot[$page->id] = $page->current_generation_id;
+            }
+        }
+
         // ビルド
         $buildPath = $buildService->buildSite($site);
 
-        // 公開レコード作成
-        $record = PublishRecord::create([
+        $record = DeployRecord::create([
             'site_id' => $site->id,
-            'pages_json' => $pageIds,
-            'snapshot_path' => $buildPath,
+            'generation_snapshot' => $snapshot,
+            'build_path' => $buildPath,
             'deploy_status' => 'building',
             'deployed_by' => auth()->id(),
         ]);
 
-        // FTPデプロイ
         $success = $ftpService->deploy($site, $buildPath, $record);
 
         if ($success) {
-            // ページのステータスを published に更新
-            $site->pages()->whereIn('id', $pageIds)->update(['status' => 'published']);
+            // ページと世代のステータスを published に
+            foreach ($pages as $page) {
+                $page->update(['status' => 'published']);
+                $page->currentGeneration?->update(['status' => 'published']);
+            }
 
             return redirect()->route('sites.publish.index', $site)->with('success', 'デプロイ完了');
         }
@@ -55,17 +64,13 @@ class PublishController extends Controller
         return redirect()->route('sites.publish.index', $site)->with('error', 'デプロイ失敗: ' . $record->error_log);
     }
 
-    public function rollback(Site $site, PublishRecord $record, FtpDeployService $ftpService)
+    public function rollback(Site $site, DeployRecord $record, FtpDeployService $ftpService)
     {
         $rollbackRecord = $ftpService->rollback($site, $record);
 
-        $message = $rollbackRecord->deploy_status === 'success'
-            ? 'ロールバック完了'
-            : 'ロールバック失敗';
-
         return redirect()->route('sites.publish.index', $site)->with(
             $rollbackRecord->deploy_status === 'success' ? 'success' : 'error',
-            $message,
+            $rollbackRecord->deploy_status === 'success' ? 'ロールバック完了' : 'ロールバック失敗',
         );
     }
 }
